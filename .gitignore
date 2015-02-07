@@ -1,5 +1,6 @@
 build
 dependencies/*/
+*.pyc
 
 # Compiled Object files
 *.slo

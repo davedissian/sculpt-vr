@@ -3,6 +3,20 @@ project(sculptvr)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMake/")
 
+# Enable C++11
+if(UNIX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+    # If on OS X, use the libc++ standard library which is much more c++11 complete
+    if(APPLE)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+        if(XCODE)
+            set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
+            set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
+        endif()
+    endif()
+endif()
+
 # Dependencies
 set(OVR_SDK_ROOT "${CMAKE_SOURCE_DIR}/dependencies/OculusSDK")
 find_package(OVR REQUIRED)
