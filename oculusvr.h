@@ -9,6 +9,8 @@ public:
   OculusVR();
   ~OculusVR();
 
+  void printState();
+
 private:
   ovrHmd hmd;
 
