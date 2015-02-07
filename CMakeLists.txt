@@ -26,8 +26,10 @@ include_directories(${OVR_INCLUDE_DIRS} ${LEAP_INCLUDE_DIRS})
 
 # Sources
 set(SRC
+  leapmotion.cc
   main.cc
   mesh.cc
+  oculusvr.cc
   shader.cc
   volume.cc)
 
