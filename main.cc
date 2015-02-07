@@ -25,9 +25,13 @@ private:
   void HMDInit();
   void HMDConf();
   void GLInit();
-  void GLDrawScene();
+  void GLDrawScene(glm::mat4& view, glm::mat4& proj);
   void GLRender();
   void GLCleanup();
+  void RotateModel();
+  glm::vec3 GetArcballVector(const glm::ivec2& pos);
+  
+  void DismissWarning();
 
 private:
   volatile bool running;
@@ -38,8 +42,13 @@ private:
   Shader shModel;
   Plane  msGround;
 
-  glm::mat4 view;
-  glm::mat4 proj;
+  int vpWidth = 640;
+  int vpHeight = 480;
+  bool mouseDown;
+  glm::ivec2 mouseLast;
+  glm::ivec2 mousePos;
+  glm::quat viewQuat;
+  glm::mat4 cameraMat;
 
   // VR Stuff
   ovrHmd hmd;
@@ -47,7 +56,6 @@ private:
   ovrTexture tex[2];
   ovrEyeRenderDesc erd[2];
   Framebuffer* buffer[2];
-  
 };
 
 
@@ -57,7 +65,13 @@ SculptVR::SculptVR()
   , context(0)
   , shModel("model")
   , shPlane("plane")
-  , msGround(20.0f, 20.0f, 40, 40)
+  , msGround(2.0f, 2.0f)
+  , mouseDown(false)
+  , viewQuat(0, 0, 0, 1)
+  , cameraMat(glm::lookAt(
+      glm::vec3(3.0f, 3.0f, 3.0f),
+      glm::vec3(0.0f, 0.0f, 0.0f),
+      glm::vec3(0.0f, 1.0f, 0.0f)))
 {
 }
 
@@ -125,7 +139,6 @@ void SculptVR::HMDInit()
 
 void SculptVR::HMDConf()
 {
-
   ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation |
                                 ovrTrackingCap_MagYawCorrection |
                                 ovrTrackingCap_Position, 0);
@@ -153,9 +166,9 @@ void SculptVR::HMDConf()
   {
     if ((buffer[i] = new Framebuffer(size[i].w, size[i].h)))
     {
-      ovrGLTexture *p = reinterpret_cast<ovrGLTexture*>(tex + i);
+      ovrGLTexture* p = reinterpret_cast<ovrGLTexture*>(tex + i);
 
-      memset(p, 0, sizeof (ovrGLTexture));
+      memset(p, 0, sizeof(ovrGLTexture));
 
       p->OGL.Header.API                 = ovrRenderAPI_OpenGL;
       p->OGL.Header.TextureSize         = size[i];
@@ -179,38 +192,47 @@ void SculptVR::GLInit()
 }
 
 
-void SculptVR::GLDrawScene()
+void SculptVR::GLDrawScene(glm::mat4& view, glm::mat4& proj)
 {
   shPlane.bind();
   shPlane.uniform("u_proj", proj);
   shPlane.uniform("u_view", view);
+  shPlane.uniform("u_model", glm::mat4_cast(viewQuat));
   msGround.render(shPlane);
+}
+
+void printMat(const float* f)
+{
+  for (int i = 0; i < 16; i++)
+    std::cout << f[i] << ", ";
+  std::cout << std::endl;
 }
 
 glm::mat4 convMat(const ovrMatrix4f& m)
 {
-  return glm::mat4(m.M[0][0], m.M[0][1], m.M[0][2], m.M[0][3],
-                m.M[1][0], m.M[1][1], m.M[1][2], m.M[1][3],
-                m.M[2][0], m.M[2][1], m.M[2][2], m.M[2][3],
-                m.M[3][0], m.M[3][1], m.M[3][2], m.M[3][3]);
+  return glm::transpose(glm::mat4(m.M[0][0], m.M[0][1], m.M[0][2], m.M[0][3],
+    m.M[1][0], m.M[1][1], m.M[1][2], m.M[1][3],
+    m.M[2][0], m.M[2][1], m.M[2][2], m.M[2][3],
+    m.M[3][0], m.M[3][1], m.M[3][2], m.M[3][3]));
 }
 
 void SculptVR::GLRender()
 {
+  // Render VR stuff
   ovrPosef pose[2];
- ovrHmd_BeginFrame(hmd, 0);
+  ovrHmd_BeginFrame(hmd, 0);
+  ovrHmd_GetEyePoses(hmd, 0, offset, pose, NULL);
+  for (int i = 0; i < 2; i++)
   {
-      ovrHmd_GetEyePoses(hmd, 0, offset, pose, NULL);
-
-      for (int i = 0; i < 2; i++)
-      {
-          auto eye = hmd->EyeRenderOrder[i];
-          buffer[eye]->bind();
-          GLDrawScene();
-      }
+    auto eye = hmd->EyeRenderOrder[i];
+    buffer[eye]->bind();
+    auto proj = convMat(ovrMatrix4f_Projection(erd[eye].Fov, 0.1f, 100.0f, 1));
+    glClear(GL_COLOR_BUFFER_BIT);
+    GLDrawScene(cameraMat, proj);
   }
   ovrHmd_EndFrame(hmd, pose, tex);
   glUseProgram(0);
+
   GLuint err = glGetError();
   if (err != 0)
   {
@@ -238,17 +260,78 @@ void SculptVR::Run()
     {
       switch (evt.type)
       {
-        case SDL_QUIT:
+        case SDL_QUIT: {
           running = false;
           break;
-
-        default:
+        }
+        case SDL_KEYDOWN: {
+          DismissWarning();
           break;
-     }
+        }
+        case SDL_MOUSEBUTTONDOWN: {
+          mouseLast = mousePos = glm::ivec2(evt.button.x, evt.button.y);
+          mouseDown = true;
+          break;
+        }
+        case SDL_MOUSEBUTTONUP: {
+          mouseDown = false;
+          break;
+        }
+        case SDL_MOUSEMOTION: {
+          if (mouseDown) {
+            mousePos = glm::ivec2(evt.motion.x, evt.motion.y);
+            RotateModel();
+          }
+          break;
+        }
+        default: {
+          break;
+        }
+      }
     }
     
     GLRender();
   }
+}
+
+
+glm::vec3 SculptVR::GetArcballVector(const glm::ivec2& pos)
+{
+  glm::vec3 p = glm::vec3(
+      (float)pos.x / vpWidth * 2 - 1.0f,
+      -(float)pos.y / vpHeight * 2 + 1.0f,
+      0);
+
+  float len = p.x * p.x + p.y * p.y;
+  if (len <= 1.0f) {
+    p.z = sqrt(1.0f - len);
+  } else {
+    p = glm::normalize(p);
+  }
+  return p;
+}
+
+
+void SculptVR::RotateModel()
+{
+  if (mouseLast == mousePos) {
+    return;
+  }
+
+  glm::mat3 invCam = glm::mat3(glm::inverse(cameraMat));
+
+  glm::vec3 va = GetArcballVector(mouseLast);
+  glm::vec3 vb = GetArcballVector(mousePos);
+
+  float angle = std::acos(std::min(1.0f, glm::dot(va, vb)));
+
+  glm::vec3 axis = invCam * glm::cross(va, vb);
+  if (glm::length(axis) >= 0.001f) {
+    axis = glm::normalize(axis);
+  }
+
+  viewQuat = glm::angleAxis(2.0f * angle, axis) * viewQuat;
+  mouseLast = mousePos;
 }
 
 
@@ -259,6 +342,16 @@ void SculptVR::Destroy()
     SDL_DestroyWindow(window);
     window = nullptr;
   }
+}
+
+void SculptVR::DismissWarning()
+{
+    ovrHSWDisplayState state;
+
+    ovrHmd_GetHSWDisplayState(hmd, &state);
+
+    if (state.Displayed)
+        ovrHmd_DismissHSWDisplay(hmd);
 }
 
 int main()

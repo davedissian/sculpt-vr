@@ -16,7 +16,7 @@ static const Vertex PLANE_MESH[] =
 };
 
 
-Plane::Plane(float width, float depth, size_t splitX, size_t splitY)
+Plane::Plane(float width, float depth)
   : model(glm::scale(glm::vec3(width, 0.0f, depth)))
 {
 }
@@ -39,9 +39,10 @@ void Plane::create()
 }
 
 
-void Plane::render(const Shader& shader)
+void Plane::render(Shader& shader)
 {
   glBindVertexArray(vao);
+  //shader.uniform("u_model", model);
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
