@@ -3,16 +3,28 @@
 
 #include <OVR.h>
 
+struct EyeState
+{
+  glm::vec3 position;
+  glm::quat orientation;
+  float fov;
+};
+
 class OculusVR
 {
 public:
   OculusVR();
   ~OculusVR();
 
-  void printState();
+  // Call this before rendering
+  void update();
+
+  int getEyeCount() const;
+  EyeState getEyeState(int eyeIndex) const;
 
 private:
   ovrHmd hmd;
+  ovrTrackingState state;
 
 };
 
