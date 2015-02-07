@@ -11,7 +11,6 @@ find_path(LEAP_INCLUDE_DIRS Leap.h
 
 find_library(LEAP_LIBRARIES
   NAMES Leap
-  PATH_SUFFIXES libstdc++
   PATHS
     ${LEAP_SDK_ROOT}/lib
     /opt/LeapSDK/lib)
