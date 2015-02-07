@@ -2,6 +2,7 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2014 The Sculpt-VR Team. All rights reserved.
 
+#include "volume.h"
 
 static const float ISO_LIMIT = 0.5f;
 
@@ -298,7 +299,7 @@ static const int8_t triTable[256][16] =
 {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 
 
-static void Interpolate(Point& out, Point& p1, Point& p2)
+static void Interpolate(Volume::Point& p1, Volume::Point& p2, Volume::Point& out)
 {
 
 }

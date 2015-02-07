@@ -5,6 +5,9 @@
 #ifndef __VOLUME_H__
 #define __VOLUME_H__
 
+#include "common.h"
+#include "mesh.h"
+
 template<size_t N>
 class Volume
 {
@@ -19,8 +22,8 @@ public:
   static_assert((N & (N - 1)) == 0, "Invalid volume size.");
 
   Volume() {
-    voxels.resize(N * N * N);
-    memset(&voxels[0], 0, sizeof(Point) * N * N * N);
+    grid.resize(N * N * N);
+    memset(&grid[0], 0, sizeof(Point) * N * N * N);
   }
 
   void ToMesh(std::vector<Triangle>& out);
