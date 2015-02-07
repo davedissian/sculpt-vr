@@ -4,7 +4,6 @@
 
 #include "common.h"
 
-
 static const Vertex PLANE_MESH[] =
 {
   { -1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF}, 
@@ -31,6 +30,9 @@ void Plane::create()
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(PLANE_MESH), PLANE_MESH, GL_STATIC_DRAW);
 
+  glEnableVertexAttribArray(0);
+  glEnableVertexAttribArray(1);
+  glEnableVertexAttribArray(2);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 32, (void*)0);
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 32, (void*)12);
   glVertexAttribPointer(2, 4, GL_UNSIGNED_SHORT, GL_FALSE, 32, (void*)24);

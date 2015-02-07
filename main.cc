@@ -53,6 +53,7 @@ void SculptVR::Init()
   
   // GL hints
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
   
   // Creat the window
   window = SDL_CreateWindow(
@@ -88,13 +89,6 @@ void SculptVR::Init()
 
 void SculptVR::GLInit()
 {
-  glEnableVertexAttribArray(0);
-  glEnableVertexAttribArray(1);
-  glEnableVertexAttribArray(2);
-  glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-  glEnable(GL_DEPTH_TEST);
-  glDepthFunc(GL_LEQUAL);
-
   shPlane.compile("shader/plane.fs", Shader::Type::FRAG);
   shPlane.compile("shader/plane.vs", Shader::Type::VERT);
   shPlane.link();
@@ -109,7 +103,7 @@ void SculptVR::GLInit()
 
 void SculptVR::GLRender()
 {
-  glViewport(0, 0, 640, 480);
+  glEnable(GL_DEPTH_TEST);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   
   shPlane.bind();
@@ -120,6 +114,12 @@ void SculptVR::GLRender()
       glm::vec3(0.0f, 0.0f, 0.0f), 
       glm::vec3(0.0f, 1.0f, 0.0)));
   msGround.render(shPlane);
+
+  GLuint err = glGetError();
+  if (err != 0)
+  {
+    std::runtime_error(std::to_string(err));
+  }
 }
 
 
@@ -136,16 +136,21 @@ void SculptVR::Run()
   SDL_Event evt;
 
   running = true;
-  while (running) {
-    SDL_WaitEvent(&evt);
-    switch (evt.type) {
-      case SDL_QUIT: {
-        running = false;
-        break;
-      }
+  while (running)
+  {
+    while (SDL_PollEvent(&evt) != 0)
+    {
+      switch (evt.type)
+      {
+        case SDL_QUIT:
+          running = false;
+          break;
+
+        default:
+          break;
+     }
     }
-
-
+    
     GLRender();
     SDL_GL_SwapWindow(window);
   }
