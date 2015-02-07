@@ -36,7 +36,6 @@ private:
 
 SculptVR::SculptVR()
   : window(nullptr)
-  , renderer(nullptr)
   , running(false)
   , shModel("model")
   , shPlane("plane")
@@ -57,7 +56,7 @@ void SculptVR::Init()
   // Creat the window
   window = SDL_CreateWindow(
       "SVR", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480,
-      SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL)
+      SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
   if (!window) 
   {
     throw std::runtime_error("Cannot create SDL window.");
@@ -88,6 +87,13 @@ void SculptVR::Init()
 
 void SculptVR::GLInit()
 {
+  glEnableVertexAttribArray(0);
+  glEnableVertexAttribArray(1);
+  glEnableVertexAttribArray(2);
+  glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LEQUAL);
+
   shPlane.compile("shader/plane.fs", Shader::Type::FRAG);
   shPlane.compile("shader/plane.vs", Shader::Type::VERT);
   shPlane.link();
@@ -102,16 +108,17 @@ void SculptVR::GLInit()
 
 void SculptVR::GLRender()
 {
+  glViewport(0, 0, 640, 480);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  shModel.bind();
-  shModel.uniform("u_proj", glm::perspective(
-    45.0f, 640.0f / 480.0f, 0.1f, 100.0f));
-  shModel.uniform("u_view", glm::lookAt(
-      glm::vec3(10.0f, 10.0f, 10.0f), 
+  
+  shPlane.bind();
+  shPlane.uniform("u_proj", glm::perspective(
+      45.0f, 640.0f / 480.0f, 0.1f, 100.0f));
+  shPlane.uniform("u_view", glm::lookAt(
+      glm::vec3(3.0f, 3.0f, 3.0f), 
       glm::vec3(0.0f, 0.0f, 0.0f), 
       glm::vec3(0.0f, 1.0f, 0.0)));
-  msGround.render(shModel);
+  msGround.render(shPlane);
 }
 
 
@@ -137,9 +144,8 @@ void SculptVR::Run()
       }
     }
 
-
     GLRender();
-    SDL_RenderPresent(renderer);
+    SDL_GL_SwapWindow(window);
   }
 }
 
@@ -147,10 +153,6 @@ void SculptVR::Run()
 void SculptVR::Destroy()
 {
   GLCleanup();
-  if (renderer) {
-    SDL_DestroyRenderer(renderer);
-    renderer = nullptr;
-  }
   if (window) {
     SDL_DestroyWindow(window);
     window = nullptr;

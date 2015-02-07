@@ -1,11 +1,11 @@
-#version 330
+#version 330 core
 
-in vec3 in_vertex;
+layout(location = 0) in vec3 in_vertex;
 
 uniform mat4 u_view;
 uniform mat4 u_proj;
 
 void main(void)
 {
-  gl_Position = u_proj * u_view * vec4(in_vertex, 1.0f); 
+  gl_Position = vec4(in_vertex.x, in_vertex.y, 0, 1);
 }

@@ -40,11 +40,6 @@ void Plane::create()
 void Plane::render(const Shader& shader)
 {
   glBindVertexArray(vao);
-
-  glEnableVertexAttribArray(0);
-  glEnableVertexAttribArray(1);
-  glEnableVertexAttribArray(2);
-  
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
