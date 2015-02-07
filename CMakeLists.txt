@@ -21,6 +21,7 @@ endif()
 
 # Dependencies
 set(OVR_SDK_ROOT "${CMAKE_SOURCE_DIR}/dependencies/OculusSDK")
+set(LEAP_SDK_ROOT "${CMAKE_SOURCE_DIR}/dependencies/LeapSDK")
 find_package(OVR REQUIRED)
 find_package(Leap REQUIRED)
 pkg_search_module(SDL2 REQUIRED sdl2)

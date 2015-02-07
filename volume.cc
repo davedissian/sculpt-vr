@@ -6,6 +6,13 @@
 
 static const float ISO_LIMIT = 0.5f;
 
+/* Coordinate offsets. */
+static const uint32_t X_OFFSET = 512 * 512;
+static const uint32_t Y_OFFSET = 512;
+
+/* Vertist, used for constructing triangles. */
+static Vertex vertex_list[12];
+
 static const uint16_t edgeTable[256] = {
 0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
 0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
@@ -298,9 +305,133 @@ static const int8_t triTable[256][16] =
 {0, 3, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 
-
 static void 
-Interpolate(Point& p1, Point& p2, Point& out)
+Interpolate(Point& p1, Point& p2, Vertex& out)
 {
 
 }
+
+void 
+Volume::VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out)
+{
+  uint8_t voxel_index = 0;
+
+  /* Calcualte the voxel_index. */
+
+  /* vertex 0 -> (x, y + 1, z) */
+  if (grid[x * X_OFFSET + (y + 1) * Y_OFFSET + z].isoValue < ISO_LIMIT)
+  {
+    voxel_index |= 1;
+  }
+  /* vertex 1 -> (x + 1, y + 1, z) */
+  if (grid[(x + 1) * X_OFFSET + (y + 1) * Y_OFFSET + z].isoValue < ISO_LIMIT)
+  {
+    voxel_index |= 2;
+  }
+  /* vertex 2 -> (x + 1, y, z) */
+  if (grid[(x + 1) * X_OFFSET + y * Y_OFFSET + z].isoValue < ISO_LIMIT)
+  {
+    voxel_index |= 4;
+  }
+  /* vertex 3 -> (x, y, z) */
+  if (grid[x * X_OFFSET + y * Y_OFFSET + z].isoValue < ISO_LIMIT)
+  {
+    voxel_index |= 8;
+  }
+  /* vertex 4 -> (x, y + 1, z + 1) */
+  if (grid[x * X_OFFSET + (y + 1) * Y_OFFSET + z + 1].isoValue < ISO_LIMIT)
+  {
+    voxel_index |= 16;
+  }
+  /* vertex 5 -> (x + 1, y + 1, z + 1) */
+  if (grid[(x + 1) * X_OFFSET + (y + 1) * Y_OFFSET + z + 1].isoValue < ISO_LIMIT)
+  {
+    voxel_index |= 32;
+  }
+  /* vertex 6 -> (x + 1, y, z + 1) */
+  if (grid[(x + 1) * X_OFFSET + y * Y_OFFSET + z + 1].isoValue < ISO_LIMIT)
+  {
+    voxel_index |= 64;
+  }
+  /* vertex 6 -> (x, y, z + 1) */
+  if (grid[x * X_OFFSET + y * Y_OFFSET + z + 1].isoValue < ISO_LIMIT)
+  {
+    voxel_index |= 128;
+  }
+
+  /* Check if the surface does not intersect the voxel. */
+  if (edgeTable[voxel_index] == 0)
+  {
+    return;
+  }
+
+  /* Edge 0 */
+  if (edgeTable[voxel_index] & 1)
+  {
+    /* Interpolate between point 0 and point 1. */
+    Interpolate(grid[ x      * X_OFFSET + (y + 1) * Y_OFFSET + z],
+                grid[(x + 1) * X_OFFSET + (y + 1) * Y_OFFSET + z],
+                vertex_list[0]);
+  }
+  /* Edge 1 */
+  if (edgeTable[voxel_index] & 2)
+  {
+    /* Interpolate between point 1 and point 2. */
+    Interpolate(grid[(x + 1) * X_OFFSET + (y + 1) * Y_OFFSET + z],
+                grid[(x + 1) * X_OFFSET +  y      * Y_OFFSET + z],
+                vertex_list[1]);
+  }
+  /* Edge 2 */
+  if (edgeTable[voxel_index] & 4)
+  {
+    /* Interpolate between point 2 and 3. */
+    //Interpolate(grid[(x + 1)])
+
+  }
+  /* Edge 3 */
+  if (edgeTable[voxel_index] & 8)
+  {
+
+  }
+  /* Edge 4 */
+  if (edgeTable[voxel_index] & 16)
+  {
+
+  }    
+  /* Edge 5 */
+  if (edgeTable[voxel_index] & 32)
+  {
+
+  }
+  /* Edge 6 */
+  if (edgeTable[voxel_index] & 64)
+  {
+
+  }
+  /* Edge 7 */
+  if (edgeTable[voxel_index] & 128)
+  {
+
+  }
+  /* Edge 8 */
+  if (edgeTable[voxel_index] & 256)
+  {
+
+  }
+  /* Edge 9 */
+  if (edgeTable[voxel_index] & 512)
+  {
+
+  }
+  /* Edge 10 */
+  if (edgeTable[voxel_index] & 1024)
+  {
+
+  }
+  /* Edge 11 */
+  if (edgeTable[voxel_index] & 2048)
+  {
+
+  }      
+}
+
