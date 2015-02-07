@@ -53,7 +53,10 @@ SculptVR::SculptVR()
   , msGround(2.0f, 2.0f)
   , mouseDown(false)
   , viewQuat(0, 0, 0, 1)
-  , cameraMat(glm::translate(glm::vec3(0.0f, 0.0f, -7.0f)))
+  , cameraMat(glm::lookAt(
+      glm::vec3(7.0f, 7.0f, 7.0f),
+      glm::vec3(0.0f, 0.0f, 0.0f),
+      glm::vec3(0.0f, 1.0f, 0.0f)))
 {
 }
 
@@ -122,7 +125,8 @@ void SculptVR::GLRender()
   shPlane.bind();
   shPlane.uniform("u_proj", glm::perspective(
       45.0f, 640.0f / 480.0f, 0.1f, 100.0f));
-  shPlane.uniform("u_view", cameraMat * glm::mat4_cast(viewQuat));
+  shPlane.uniform("u_view", cameraMat);
+  shPlane.uniform("u_model", glm::mat4_cast(viewQuat));
   msGround.render(shPlane);
 
   GLuint err = glGetError();
@@ -214,12 +218,12 @@ void SculptVR::RotateModel()
 
   float angle = std::acos(std::min(1.0f, glm::dot(va, vb)));
 
-  glm::vec3 axis = glm::cross(va, vb);
+  glm::vec3 axis = invCam * glm::cross(va, vb);
   if (glm::length(axis) >= 0.001f) {
     axis = glm::normalize(axis);
   }
 
-  viewQuat = viewQuat * glm::angleAxis(-angle, axis);
+  viewQuat = glm::angleAxis(2.0f * angle, axis) * viewQuat;
   mouseLast = mousePos;
 }
 

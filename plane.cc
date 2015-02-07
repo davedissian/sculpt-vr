@@ -42,7 +42,7 @@ void Plane::create()
 void Plane::render(Shader& shader)
 {
   glBindVertexArray(vao);
-  shader.uniform("u_model", model);
+  //shader.uniform("u_model", model);
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
