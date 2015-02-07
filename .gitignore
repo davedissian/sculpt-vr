@@ -26,3 +26,7 @@
 *.exe
 *.out
 *.app
+
+
+# Sublime text project files.
+*sublime*
