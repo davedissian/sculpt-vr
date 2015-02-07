@@ -9,10 +9,18 @@
 #include <unordered_map>
 
 
+
 class Shader
 {
 public:
+  Shader(const std::string& name);
+  virtual ~Shader();
 
+  void compile(const std::string& file);
+  void link();
+
+
+  void uniform();
 
 private:
   std::unordered_map<std::string, GLuint> uniforms;

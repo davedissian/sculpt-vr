@@ -6,5 +6,15 @@
 #define __MESH_H__
 
 
+struct Vertex {
+  float x, y, z;
+  float nx, ny, nz;
+  uint16_t r, g, b, a;
+};
+
+struct Triangle {
+  Vertex v[3];
+};
+
 
 #endif /*__MESH_H__*/
