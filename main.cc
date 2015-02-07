@@ -33,12 +33,11 @@ private:
 
 SculptVR::SculptVR()
   : window(nullptr)
-  , renderer(nullptr)
+  , context(0)
   , running(false)
   , shModel("model")
 {
 }
-
 
 void SculptVR::Init()
 {
@@ -52,7 +51,7 @@ void SculptVR::Init()
   // Creat the window
   window = SDL_CreateWindow(
       "SVR", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480,
-      SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL)
+      SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
   if (!window) 
   {
     throw std::runtime_error("Cannot create SDL window.");
@@ -117,7 +116,6 @@ void SculptVR::Run()
 
 
     GLRender();
-    SDL_RenderPresent(renderer);
   }
 }
 
@@ -125,10 +123,6 @@ void SculptVR::Run()
 void SculptVR::Destroy()
 {
   GLCleanup();
-  if (renderer) {
-    SDL_DestroyRenderer(renderer);
-    renderer = nullptr;
-  }
   if (window) {
     SDL_DestroyWindow(window);
     window = nullptr;
