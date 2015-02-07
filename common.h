@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <iostream>
 #include <exception>
+#include <fstream>
 
 #ifdef __APPLE__
 # include <OpenGL/gl3.h>

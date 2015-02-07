@@ -34,10 +34,10 @@ set(SRC
   shader.cc
   volume.cc)
 
-if (LINUX)
-  set(PLATFORM_LIBS X11 GL rt Xrandr GLEW)
-else (APPLE)
+if (APPLE)
   set(PLATFORM_LIBS SDL2)
+else ()
+  set(PLATFORM_LIBS X11 GL rt Xrandr GLEW)
 endif()
 
 # Executable
