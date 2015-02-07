@@ -11,7 +11,28 @@ public:
 
   virtual void onFrame(const Leap::Controller& c)
   {
-    std::cout << c.frame(0).hands().isEmpty() << std::endl;
+    auto frame = c.frame();
+    std::cout << "Hands: " << frame.hands().count()
+              << ", Fingers: " << frame.fingers().count() << std::endl;
+    if (frame.hands().count() > 0)
+      printHand(frame.hands()[0]);
+    else
+      std::cout << std::endl;
+    std::cout << "\r\033[2A";
+  }
+
+  void printHand(const Leap::Hand& h)
+  {
+    std::cout << "Confidence: " << h.confidence()
+              << ", Pinch: " << h.pinchStrength()
+              << ", Position : ";
+    printVec(h.stabilizedPalmPosition());
+    std::cout << std::endl;
+  }
+
+  void printVec(const Leap::Vector& v)
+  {
+    std::cout << "(" << v.x << ", " << v.y << ", " << v.z << ")";
   }
 };
 

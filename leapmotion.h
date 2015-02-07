@@ -1,5 +1,5 @@
-#ifndef LEAP_H
-#define LEAP_H
+#ifndef LEAPMOTION_H
+#define LEAPMOTION_H
 
 #include <Leap.h>
 
@@ -14,4 +14,4 @@ private:
 
 };
 
-#endif /* LEAP_H */
+#endif /* LEAPMOTION_H */
