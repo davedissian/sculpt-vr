@@ -26,7 +26,7 @@ private:
 private:
   volatile bool running;
   SDL_Window *window;
-  SDL_Renderer *renderer;
+  SDL_GLContext context;
 
   Shader shPlane;
   Shader shModel;
@@ -48,26 +48,30 @@ SculptVR::SculptVR()
 void SculptVR::Init()
 {
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-    throw std::runtime_error("Cannot initialise SDL vide.");
+    throw std::runtime_error("Cannot initialise SDL video.");
   }
   
   // GL hints
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
   
-  if (!(window = SDL_CreateWindow(
+  // Creat the window
+  window = SDL_CreateWindow(
       "SVR", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480,
-      SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL))) 
+      SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL)
+  if (!window) 
   {
     throw std::runtime_error("Cannot create SDL window.");
   }
-  if (!(renderer = SDL_CreateRenderer(
-      window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)))
-  {
-    throw std::runtime_error("Cannot create SDL renderer.");
-  }
+
+  // Create the GL context
+  context = SDL_GL_CreateContext(window);
+  SDL_GL_SetSwapInterval(1);
+
+  // Set up GLEW
 #ifndef __APPLE__
   glewExperimental = GL_TRUE;
-  if (glewInit() != GLEW_OK) {
+  if (glewInit() != GLEW_OK)
+  {
     throw std::runtime_error("Cannot initialise GLEW.");
   }
 #endif
@@ -152,7 +156,6 @@ void SculptVR::Destroy()
     window = nullptr;
   }
 }
-
 
 int main()
 {
