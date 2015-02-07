@@ -33,6 +33,7 @@ set(SRC
   main.cc
   mesh.cc
   oculusvr.cc
+  plane.cc
   shader.cc
   volume.cc)
 
@@ -40,7 +41,7 @@ if (APPLE)
   set(PLATFORM_LIBS SDL2)
 else ()
   set(PLATFORM_LIBS X11 GL rt Xrandr GLEW)
-endif()
+endif ()
 
 # Executable
 add_executable(sculptvr ${SRC})

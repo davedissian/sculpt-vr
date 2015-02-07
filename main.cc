@@ -27,7 +27,10 @@ private:
   volatile bool running;
   SDL_Window *window;
   SDL_Renderer *renderer;
+
+  Shader shPlane;
   Shader shModel;
+  Plane  msGround;
 };
 
 
@@ -36,6 +39,8 @@ SculptVR::SculptVR()
   , renderer(nullptr)
   , running(false)
   , shModel("model")
+  , shPlane("plane")
+  , msGround(20.0f, 20.0f, 40, 40)
 {
 }
 
@@ -79,21 +84,38 @@ void SculptVR::Init()
 
 void SculptVR::GLInit()
 {
+  shPlane.compile("shader/plane.fs", Shader::Type::FRAG);
+  shPlane.compile("shader/plane.vs", Shader::Type::VERT);
+  shPlane.link();
+
   shModel.compile("shader/model.fs", Shader::Type::FRAG);
   shModel.compile("shader/model.vs", Shader::Type::VERT);
   shModel.link();
+
+  msGround.create();
 }
 
 
 void SculptVR::GLRender()
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  shModel.bind();
+  shModel.uniform("u_proj", glm::perspective(
+    45.0f, 640.0f / 480.0f, 0.1f, 100.0f));
+  shModel.uniform("u_view", glm::lookAt(
+      glm::vec3(10.0f, 10.0f, 10.0f), 
+      glm::vec3(0.0f, 0.0f, 0.0f), 
+      glm::vec3(0.0f, 1.0f, 0.0)));
+  msGround.render(shModel);
 }
 
 
 void SculptVR::GLCleanup()
 {
   shModel.destroy();
+  shPlane.destroy();
+  msGround.destroy();
 }
 
 

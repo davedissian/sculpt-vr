@@ -25,6 +25,10 @@ public:
   void compile(const std::string& filel, const Type& type);
   void link();
   void destroy();
+  void bind() 
+  {
+    glUseProgram(prog);
+  }
 
   template<typename T>
   void uniform(const std::string& name, const T& t);
@@ -42,7 +46,7 @@ inline void Shader::uniform<glm::mat4>(
 {
   auto loc = uniforms.find(name);
   if (loc == uniforms.end()) {
-    throw std::runtime_error("Uniform not found.");
+    return;
   }
   glUniformMatrix4fv(loc->second, 1, GL_FALSE, glm::value_ptr(t));
 }

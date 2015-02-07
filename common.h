@@ -1,3 +1,7 @@
+// This file is part of the Sculpt-VR Project.
+// Licensing information can be found in the LICENSE file.
+// (C) 2014 The Sculpt-VR Team. All rights reserved.
+
 #ifndef __COMMON_H__
 #define __COMMON_H__
 
@@ -23,7 +27,8 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
+#include "mesh.h"
 #include "shader.h"
-
+#include "plane.h"
 
 #endif /* __COMMON_H__ */
