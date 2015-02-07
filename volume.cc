@@ -368,70 +368,101 @@ Volume::VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out)
   /* Edge 0 */
   if (edgeTable[voxel_index] & 1)
   {
-    /* Interpolate between point 0 and point 1. */
-    Interpolate(grid[ x      * X_OFFSET + (y + 1) * Y_OFFSET + z],
-                grid[(x + 1) * X_OFFSET + (y + 1) * Y_OFFSET + z],
+    /* Interpolate between points 0 and point 1. */
+    Interpolate(grid[ x      * X_OFFSET + (y + 1) * Y_OFFSET + z    ],
+                grid[(x + 1) * X_OFFSET + (y + 1) * Y_OFFSET + z    ],
                 vertex_list[0]);
   }
   /* Edge 1 */
   if (edgeTable[voxel_index] & 2)
   {
-    /* Interpolate between point 1 and point 2. */
-    Interpolate(grid[(x + 1) * X_OFFSET + (y + 1) * Y_OFFSET + z],
-                grid[(x + 1) * X_OFFSET +  y      * Y_OFFSET + z],
+    /* Interpolate between points 1 and point 2. */
+    Interpolate(grid[(x + 1) * X_OFFSET + (y + 1) * Y_OFFSET + z    ],
+                grid[(x + 1) * X_OFFSET +  y      * Y_OFFSET + z    ],
                 vertex_list[1]);
   }
   /* Edge 2 */
   if (edgeTable[voxel_index] & 4)
   {
-    /* Interpolate between point 2 and 3. */
-    //Interpolate(grid[(x + 1)])
+    /* Interpolate between points 2 and 3. */
+    Interpolate(grid[(x + 1) * X_OFFSET +  y      * Y_OFFSET + z    ],
+                grid[ x      * X_OFFSET +  y      * Y_OFFSET + z    ],
+                vertex_list[2]);
 
   }
   /* Edge 3 */
   if (edgeTable[voxel_index] & 8)
   {
-
+    /* Interpolate between points 3 and 0. */
+    Interpolate(grid[ x      * X_OFFSET +  y      * Y_OFFSET + z    ],
+                grid[ x      * X_OFFSET + (y + 1) * Y_OFFSET + z    ],
+                vertex_list[3]);
   }
   /* Edge 4 */
   if (edgeTable[voxel_index] & 16)
   {
-
+    /* Interpolate between points 4 and 5. */
+    Interpolate(grid[ x      * X_OFFSET + (y + 1) * Y_OFFSET + z + 1],
+                grid[(x + 1) * X_OFFSET + (y + 1) * Y_OFFSET + z + 1],
+                vertex_list[4]);
   }    
   /* Edge 5 */
   if (edgeTable[voxel_index] & 32)
   {
-
+    /* Interpolate between points 5 and 6. */
+    Interpolate(grid[(x + 1) * X_OFFSET + (y + 1) * Y_OFFSET + z + 1],
+                grid[(x + 1) * X_OFFSET +  y      * Y_OFFSET + z + 1],
+                vertex_list[5]);
   }
   /* Edge 6 */
   if (edgeTable[voxel_index] & 64)
   {
-
+    /* Interpolate between points 6 and 7. */
+    Interpolate(grid[(x + 1) * X_OFFSET +  y      * Y_OFFSET + z + 1],
+                grid[ x      * X_OFFSET +  y      * Y_OFFSET + z + 1],
+                vertex_list[6]);
   }
   /* Edge 7 */
   if (edgeTable[voxel_index] & 128)
   {
-
+    /* Interpolate between points 7 and 4. */
+    Interpolate(grid[ x      * X_OFFSET +  y      * Y_OFFSET + z + 1],
+                grid[ x      * X_OFFSET + (y + 1) * Y_OFFSET + z + 1],
+                vertex_list[7]);  
   }
   /* Edge 8 */
   if (edgeTable[voxel_index] & 256)
   {
-
+    /* Interpolate between points 0 and 4. */
+    Interpolate(grid[ x      * X_OFFSET + (y + 1) * Y_OFFSET + z    ],
+                grid[ x      * X_OFFSET + (y + 1) * Y_OFFSET + z + 1],
+                vertex_list[8]); 
   }
   /* Edge 9 */
   if (edgeTable[voxel_index] & 512)
   {
-
+    /* Interpolate between points 1 and 5. */
+    Interpolate(grid[(x + 1) * X_OFFSET + (y + 1) * Y_OFFSET + z    ],
+                grid[(x + 1) * X_OFFSET + (y + 1) * Y_OFFSET + z + 1],
+                vertex_list[9]);
   }
   /* Edge 10 */
   if (edgeTable[voxel_index] & 1024)
   {
-
+    /* Interpolate between points 2 and 6. */
+    Interpolate(grid[(x + 1) * X_OFFSET +  y      * Y_OFFSET + z    ],
+                grid[(x + 1) * X_OFFSET +  y      * Y_OFFSET + z + 1],
+                vertex_list[10]);
   }
   /* Edge 11 */
   if (edgeTable[voxel_index] & 2048)
   {
+    /* Interpolate between points 3 and 7. */
+    Interpolate(grid[ x      * X_OFFSET +  y      * Y_OFFSET + z    ],
+                grid[ x      * X_OFFSET +  y      * Y_OFFSET + z + 1],
+                vertex_list[11]);
+  }
 
-  }      
+  // TODO: construct triangles.
+
 }
-
