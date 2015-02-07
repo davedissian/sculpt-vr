@@ -31,7 +31,6 @@ OculusVR::~OculusVR()
   ovr_Shutdown();
 }
 
-
 void printVec(const ovrVector3f& v)
 {
   std::cout << "(" << v.x << ", " << v.y << ", " << v.z << ")";
@@ -42,12 +41,32 @@ void printQuat(const ovrQuatf& q)
   std::cout << "(" << q.w << ", " << q.x << ", " << q.y << ", " << q.z << ")";
 }
 
-void OculusVR::printState()
+void OculusVR::update()
 {
-  auto state = ovrHmd_GetTrackingState(hmd, ovr_GetTimeInSeconds());
-  std::cout << "Position: ";
-  printVec(state.HeadPose.ThePose.Position);
-  std::cout << ", Orientation: ";
-  printQuat(state.HeadPose.ThePose.Orientation);
-  std::cout << "\r";
+  state = ovrHmd_GetTrackingState(hmd, ovr_GetTimeInSeconds());
+}
+
+glm::vec3 convVec(const ovrVector3f& v)
+{
+  return glm::vec3(v.x, v.y, v.z);
+}
+
+glm::quat convQuat(const ovrQuatf& q)
+{
+  return glm::quat(q.w, q.x, q.y, q.z);
+}
+
+int OculusVR::getEyeCount() const
+{
+  return ovrEye_Count;
+}
+
+EyeState OculusVR::getEyeState(int eyeIndex) const
+{
+  EyeState es;
+  ovrEyeType eye = hmd->EyeRenderOrder[eyeIndex];
+  ovrPosef pose = ovrHmd_GetHmdPosePerEye(hmd, eye);
+  es.position = convVec(pose.Position);
+  es.orientation = convQuat(pose.Orientation);
+  return es;
 }
