@@ -324,6 +324,38 @@ Interpolate(float x1, float y1, float z1, Point& p1,
   out.a = p1.a + d * (p2.a - p1.a);
 }
 
+static void
+Normalise(Vertex& v1, Vertex& v2, Vertex& v3)
+{
+  /* m = v2 - v1 */
+  float mx = v2.x - v1.x;
+  float my = v2.y - v1.y;
+  float mz = v2.z - v1.z;
+
+  /* l = v3 - v1 */
+  float lx = v3.x - v1.x;
+  float ly = v3.y - v1.y;
+  float lz = v3.z - v1.z;  
+  
+  /* n = v x v */
+  float nx = my * lz - mz * ly;
+  float ny = mz * lx - mx * lz;
+  float nz = mx * ly - my * lx;
+
+  /* Set normal vector components. */
+  v1.nx = nx;
+  v2.nx = nx;
+  v3.nx = nx;
+
+  v1.ny = ny;
+  v2.ny = ny;
+  v3.ny = ny;
+
+  v1.nz = nz;
+  v2.nz = nz;
+  v3.nz = nz;     
+}
+
 void 
 Volume::VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out)
 {
@@ -500,6 +532,17 @@ Volume::VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out)
                 vertex_list[11]);
   }
 
-  // TODO: construct triangles.
-
+  /* Construct the triangles. */
+  for (size_t i = 0; triTable[voxel_index][i]; i += 3)
+  {
+    /* Calculate the normal vector components. */
+    Normalise(vertex_list[triTable[voxel_index][i    ]],
+              vertex_list[triTable[voxel_index][i + 1]],
+              vertex_list[triTable[voxel_index][i + 2]]);
+    
+    /* Construct the triangle. */
+    out.emplace_back(vertex_list[triTable[voxel_index][i    ]],
+                     vertex_list[triTable[voxel_index][i + 1]],
+                     vertex_list[triTable[voxel_index][i + 2]]);
+  }
 }
