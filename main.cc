@@ -45,8 +45,13 @@ void SculptVR::Init()
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
     throw std::runtime_error("Cannot initialise SDL vide.");
   }
+  
+  // GL hints
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+  
   if (!(window = SDL_CreateWindow(
-      "SVR", 0, 0, 640, 480, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL))) 
+      "SVR", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480,
+      SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL))) 
   {
     throw std::runtime_error("Cannot create SDL window.");
   }
@@ -55,9 +60,18 @@ void SculptVR::Init()
   {
     throw std::runtime_error("Cannot create SDL renderer.");
   }
+#ifndef __APPLE__
+  glewExperimental = GL_TRUE;
   if (glewInit() != GLEW_OK) {
     throw std::runtime_error("Cannot initialise GLEW.");
   }
+#endif
+
+  // get version info
+  const GLubyte* renderer = glGetString(GL_RENDERER);
+  const GLubyte* version = glGetString(GL_VERSION);
+  std::cout << "Renderer: " << renderer << std::endl;
+  std::cout << "OpenGL version supported " << version << std::endl;
 
   GLInit();
 }

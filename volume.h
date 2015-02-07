@@ -15,20 +15,16 @@ struct Point
 } __attribute__((packed));
 
 
-template<size_t N>
 class Volume
 {
 public:
 
   static_assert(sizeof(Point) == 8, "Invalid voxel size.");
-  static_assert((N & (N - 1)) == 0, "Invalid volume size.");
 
-  Volume() {
-    grid.resize(N * N * N);
-    memset(&grid[0], 0, sizeof(Point) * N * N * N);
+  Volume(size_t size) {
+    grid.resize(size * size * size);
+    memset(&grid[0], 0, sizeof(Point) * size * size * size);
   }
-
-  void ToMesh(std::vector<Triangle>& out);
 
 private:
   void VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out);

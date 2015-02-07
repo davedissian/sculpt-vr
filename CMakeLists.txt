@@ -21,8 +21,10 @@ endif()
 
 # Dependencies
 set(OVR_SDK_ROOT "${CMAKE_SOURCE_DIR}/dependencies/OculusSDK")
+set(LEAP_SDK_ROOT "${CMAKE_SOURCE_DIR}/dependencies/LeapSDK")
 find_package(OVR REQUIRED)
 find_package(Leap REQUIRED)
+pkg_search_module(SDL2 REQUIRED sdl2)
 include_directories(${OVR_INCLUDE_DIRS} ${SDL2_INCLUDE_DIRS} ${LEAP_INCLUDE_DIRS})
 
 # Sources
@@ -32,15 +34,17 @@ set(SRC
   shader.cc
   volume.cc)
 
-if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  set(PLATFORM_LIBS glfw X11 GL rt Xrandr SDL2 GLEW)
-endif ()
+if (APPLE)
+  set(PLATFORM_LIBS SDL2)
+else ()
+  set(PLATFORM_LIBS X11 GL rt Xrandr GLEW)
+endif()
 
 # Executable
 add_executable(sculptvr ${SRC})
 target_link_libraries(
-    sculptvr 
-    ${OVR_LIBRARIES} 
-    ${SDL2_LIBRARIES} 
- 	${LEAP_LIBRARIES}
-    ${PLATFORM_LIBS})
+  sculptvr 
+  ${OVR_LIBRARIES} 
+  ${SDL2_LIBRARIES} 
+  ${LEAP_LIBRARIES}
+  ${PLATFORM_LIBS})
