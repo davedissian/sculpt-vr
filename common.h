@@ -12,10 +12,12 @@
 #include <iostream>
 #include <exception>
 
-
-#include <OVR.h>
+#ifdef __APPLE__
+# include <OpenGL/gl3.h>
+#else
+# include <GL/glew.h>
+#endif
 #include <SDL2/SDL.h>
-#include <GL/glew.h>
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>

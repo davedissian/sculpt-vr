@@ -1,8 +1,7 @@
 // This file is part of the Sculpt-VR Project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2014 The Sculpt-VR Team. All rights reserved.
-
-#include <OVR.h>
+#include "common.h"
 
 class SculptVR
 {
@@ -55,9 +54,12 @@ void SculptVR::Init()
   {
     throw std::runtime_error("Cannot create SDL renderer.");
   }
+#ifndef __APPLE__
+  glewExperimental = GL_TRUE;
   if (glewInit() != GLEW_OK) {
     throw std::runtime_error("Cannot initialise GLEW.");
   }
+#endif
 
   GLInit();
 }
