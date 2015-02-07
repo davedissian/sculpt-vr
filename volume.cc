@@ -299,7 +299,8 @@ static const int8_t triTable[256][16] =
 {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 
 
-static void Interpolate(Volume::Point& p1, Volume::Point& p2, Volume::Point& out)
+static void 
+Interpolate(Point& p1, Point& p2, Point& out)
 {
 
 }

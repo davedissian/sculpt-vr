@@ -8,15 +8,17 @@
 #include "common.h"
 #include "mesh.h"
 
+struct Point 
+{
+  float isoValue;
+  uint8_t r, g, b, a;
+} __attribute__((packed));
+
+
 template<size_t N>
 class Volume
 {
 public:
-  struct Point 
-  {
-    float isoValue;
-    uint8_t r, g, b, a;
-  } [[gnu::packed]];
 
   static_assert(sizeof(Point) == 8, "Invalid voxel size.");
   static_assert((N & (N - 1)) == 0, "Invalid volume size.");

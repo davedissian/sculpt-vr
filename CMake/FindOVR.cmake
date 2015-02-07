@@ -7,7 +7,9 @@
 
 find_path(OVR_INCLUDE_DIR OVR.h
   PATH_SUFFIXES "LibOVR/Include"
-  PATHS ${OVR_SDK_ROOT})
+  PATHS 
+    ${OVR_SDK_ROOT}
+    /opt/oculus-sdk/)
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   if(WIN32)
@@ -35,7 +37,9 @@ endif()
 
 find_library(OVR_LIBRARY NAMES OVR ovr libOVR libovr
 	PATH_SUFFIXES ${OVR_PATH_SUFFIX}
-  PATHS ${OVR_SDK_ROOT})
+  PATHS
+    ${OVR_SDK_ROOT}
+    /opt/oculus-sdk)
 
 set(OVR_INCLUDE_DIRS ${OVR_INCLUDE_DIR})
 set(OVR_LIBRARIES ${OVR_LIBRARY} )
