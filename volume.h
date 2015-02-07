@@ -19,17 +19,25 @@ class Volume
 {
 public:
 
-  static_assert(sizeof(Point) == 8, "Invalid voxel size.");
+  static_assert(sizeof(Point) == 8, "Invalid point size.");
 
   Volume(size_t size) {
     grid.resize(size * size * size);
     memset(&grid[0], 0, sizeof(Point) * size * size * size);
   }
 
+  /**
+   * Converts the grid into a list of triangles.
+   *
+   * @param size Grid dimension
+   * @param out List where the triangles should be inserted
+   */
+  void GridToTris(size_t size, std::vector<Triangle>& out);
+
 private:
   void VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out);
 
-  /// 3D point grid.
+  // 3D point grid.
   std::vector<Point> grid;
 };
 

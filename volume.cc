@@ -546,3 +546,24 @@ Volume::VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out)
                      vertex_list[triTable[voxel_index][i + 2]]);
   }
 }
+
+void
+Volume::GridToTris(size_t size, std::vector<Triangle>& out)
+{
+  size_t x, y, z;
+
+  for (x = 0; x < (size - 1); ++x)
+  {
+    for (y = 0; y < (size - 1); ++y)
+    {
+      for (z = 0; z < (size - 1); ++z)
+      {
+        VoxelToTris(x, y, z, out);
+      }
+    }
+  }
+}
+
+
+
+
