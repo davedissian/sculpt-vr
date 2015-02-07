@@ -27,6 +27,7 @@ private:
   volatile bool running;
   SDL_Window *window;
   SDL_Renderer *renderer;
+  Shader shModel;
 };
 
 
@@ -34,6 +35,7 @@ SculptVR::SculptVR()
   : window(nullptr)
   , renderer(nullptr)
   , running(false)
+  , shModel("model")
 {
 }
 
@@ -63,7 +65,9 @@ void SculptVR::Init()
 
 void SculptVR::GLInit()
 {
-
+  shModel.compile("shader/model.fs", Shader::Type::FRAG);
+  shModel.compile("Shader/model.vs", Shader::Type::VERT);
+  shModel.link();
 }
 
 
@@ -87,7 +91,7 @@ void SculptVR::Run()
       }
     }
 
-    
+
     GLRender();
     SDL_RenderPresent(renderer);
   }

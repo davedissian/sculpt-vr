@@ -13,19 +13,30 @@
 class Shader
 {
 public:
+	enum class Type {
+		VERT,
+		FRAG,
+		GEOM
+	};
+public:
   Shader(const std::string& name);
   virtual ~Shader();
 
-  void compile(const std::string& file);
+  void compile(const std::string& filel, const Type& type);
   void link();
 
-
-  void uniform();
+  template<typename T>
+  void uniform(const std::string& name, const T& t);
 
 private:
   std::unordered_map<std::string, GLuint> uniforms;
 
 };
 
+template<>
+inline void Shader::uniform<glm::mat4>(const std::string& name, const glm::mat4& t)
+{
+
+}
 
 #endif /*__SHADER_H__*/
