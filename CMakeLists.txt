@@ -22,9 +22,8 @@ endif()
 # Dependencies
 set(OVR_SDK_ROOT "${CMAKE_SOURCE_DIR}/dependencies/OculusSDK")
 find_package(OVR REQUIRED)
-pkg_search_module(SDL2 REQUIRED sdl2)
-
-include_directories(${OVR_INCLUDE_DIRS} ${SDL2_INCLUDE_DIRS})
+find_package(Leap REQUIRED)
+include_directories(${OVR_INCLUDE_DIRS} ${SDL2_INCLUDE_DIRS} ${LEAP_INCLUDE_DIRS})
 
 # Sources
 set(SRC
@@ -43,4 +42,5 @@ target_link_libraries(
     sculptvr 
     ${OVR_LIBRARIES} 
     ${SDL2_LIBRARIES} 
+ 	${LEAP_LIBRARIES}
     ${PLATFORM_LIBS})

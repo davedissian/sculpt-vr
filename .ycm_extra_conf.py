@@ -17,6 +17,7 @@ flags = [
     '-isystem', '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include'
 ] + [
     '-I', 'dependencies/OculusSDK/LibOVR/Include',
+    '-I', 'dependencies/LeapSDK/include'
 ]
 
 if sys.platform.startswith('darwin'):
