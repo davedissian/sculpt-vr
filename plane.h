@@ -9,10 +9,10 @@
 class Plane
 {
 public:
-  Plane(float width, float depth, size_t splitX, size_t splitY);
+  Plane(float width, float depth);
 
   void create();
-  void render(const Shader& shader);
+  void render(Shader& shader);
   void destroy();
 
 private:

@@ -22,6 +22,8 @@ private:
   void GLInit();
   void GLRender();
   void GLCleanup();
+  void RotateModel();
+  glm::vec3 GetArcballVector(const glm::ivec2& pos);
 
 private:
   volatile bool running;
@@ -31,6 +33,14 @@ private:
   Shader shPlane;
   Shader shModel;
   Plane  msGround;
+
+  int vpWidth = 640;
+  int vpHeight = 480;
+  bool mouseDown;
+  glm::ivec2 mouseLast;
+  glm::ivec2 mousePos;
+  glm::quat viewQuat;
+  glm::mat4 cameraMat;
 };
 
 
@@ -40,7 +50,10 @@ SculptVR::SculptVR()
   , running(false)
   , shModel("model")
   , shPlane("plane")
-  , msGround(20.0f, 20.0f, 40, 40)
+  , msGround(2.0f, 2.0f)
+  , mouseDown(false)
+  , viewQuat(0, 0, 0, 1)
+  , cameraMat(glm::translate(glm::vec3(0.0f, 0.0f, -7.0f)))
 {
 }
 
@@ -109,10 +122,7 @@ void SculptVR::GLRender()
   shPlane.bind();
   shPlane.uniform("u_proj", glm::perspective(
       45.0f, 640.0f / 480.0f, 0.1f, 100.0f));
-  shPlane.uniform("u_view", glm::lookAt(
-      glm::vec3(3.0f, 3.0f, 3.0f), 
-      glm::vec3(0.0f, 0.0f, 0.0f), 
-      glm::vec3(0.0f, 1.0f, 0.0)));
+  shPlane.uniform("u_view", cameraMat * glm::mat4_cast(viewQuat));
   msGround.render(shPlane);
 
   GLuint err = glGetError();
@@ -142,18 +152,75 @@ void SculptVR::Run()
     {
       switch (evt.type)
       {
-        case SDL_QUIT:
+        case SDL_QUIT: {
           running = false;
           break;
-
-        default:
+        }
+        case SDL_MOUSEBUTTONDOWN: {
+          mouseLast = mousePos = glm::ivec2(evt.button.x, evt.button.y);
+          mouseDown = true;
           break;
-     }
+        }
+        case SDL_MOUSEBUTTONUP: {
+          mouseDown = false;
+          break;
+        }
+        case SDL_MOUSEMOTION: {
+          if (mouseDown) {
+            mousePos = glm::ivec2(evt.motion.x, evt.motion.y);
+            RotateModel();
+          }
+          break;
+        }
+        default: {
+          break;
+        }
+      }
     }
     
     GLRender();
     SDL_GL_SwapWindow(window);
   }
+}
+
+
+glm::vec3 SculptVR::GetArcballVector(const glm::ivec2& pos)
+{
+  glm::vec3 p = glm::vec3(
+      (float)pos.x / vpWidth * 2 - 1.0f,
+      -(float)pos.y / vpHeight * 2 + 1.0f,
+      0);
+
+  float len = p.x * p.x + p.y * p.y;
+  if (len <= 1.0f) {
+    p.z = sqrt(1.0f - len);
+  } else {
+    p = glm::normalize(p);
+  }
+  return p;
+}
+
+
+void SculptVR::RotateModel()
+{
+  if (mouseLast == mousePos) {
+    return;
+  }
+
+  glm::mat3 invCam = glm::mat3(glm::inverse(cameraMat));
+
+  glm::vec3 va = GetArcballVector(mouseLast);
+  glm::vec3 vb = GetArcballVector(mousePos);
+
+  float angle = std::acos(std::min(1.0f, glm::dot(va, vb)));
+
+  glm::vec3 axis = glm::cross(va, vb);
+  if (glm::length(axis) >= 0.001f) {
+    axis = glm::normalize(axis);
+  }
+
+  viewQuat = viewQuat * glm::angleAxis(-angle, axis);
+  mouseLast = mousePos;
 }
 
 
