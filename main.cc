@@ -23,9 +23,10 @@ public:
 
 private:
   void HMDInit();
+  void SDLCreateWindow(int width, int height, SDL_Window** window, SDL_GLContext* context, int monitor);
   void HMDConf();
   void GLInit();
-  void GLDrawScene(glm::mat4& view, glm::mat4& proj);
+  void GLDrawScene(const glm::mat4& view, const glm::mat4& proj);
   void GLRender();
   void GLCleanup();
   void RotateModel();
@@ -35,8 +36,8 @@ private:
 
 private:
   volatile bool running;
-  SDL_Window *window;
-  SDL_GLContext context;
+  SDL_Window *window[2];
+  SDL_GLContext context[2];
 
   Shader shPlane;
   Shader shModel;
@@ -49,6 +50,11 @@ private:
   glm::ivec2 mousePos;
   glm::quat viewQuat;
   glm::mat4 cameraMat;
+  
+  /// Really big VBO.
+  GLuint vbo;
+  /// VAO for the Really big VBO.
+  GLuint vao;
 
   // VR Stuff
   ovrHmd hmd;
@@ -61,11 +67,9 @@ private:
 
 SculptVR::SculptVR()
   : running(false)
-  , window(nullptr)
-  , context(0)
   , shModel("model")
   , shPlane("plane")
-  , msGround(2.0f, 2.0f)
+  , msGround(20.0f, 20.0f)
   , mouseDown(false)
   , viewQuat(0, 0, 0, 1)
   , cameraMat(glm::lookAt(
@@ -86,19 +90,12 @@ void SculptVR::Init()
   // GL hints
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+  SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
+  SDL_GL_SetSwapInterval(1);
   
   // Creat the window
-  window = SDL_CreateWindow(
-      "SVR", SDL_WINDOWPOS_CENTERED_DISPLAY(1), SDL_WINDOWPOS_CENTERED_DISPLAY(1), hmd->Resolution.w, hmd->Resolution.h,
-      SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
-  if (!window) 
-  {
-    throw std::runtime_error("Cannot create SDL window.");
-  }
-
-  // Create the GL context
-  context = SDL_GL_CreateContext(window);
-  SDL_GL_SetSwapInterval(1);
+  SDLCreateWindow(vpWidth, vpHeight, &window[0], &context[0], 0);
+  SDLCreateWindow(hmd->Resolution.w, hmd->Resolution.h, &window[1], &context[1], 1);
 
   // Set up GLEW
 #ifndef __APPLE__
@@ -178,8 +175,27 @@ void SculptVR::HMDConf()
   }
 }
 
+void SculptVR::SDLCreateWindow(int width, int height, SDL_Window** window, SDL_GLContext* context, int monitor)
+{
+  auto pos = SDL_WINDOWPOS_CENTERED_DISPLAY(monitor);
+  *window = SDL_CreateWindow("SVR", pos, pos, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
+  *context = SDL_GL_CreateContext(*window);
+}
+
+static const Vertex temp[] =
+{
+  { -1.0f, 2.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF}, 
+  {  1.0f, 2.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF},
+  {  1.0f, 2.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF},
+  { -1.0f, 2.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF},
+  { -1.0f, 2.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF},
+  {  1.0f, 2.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF}
+};
+
+
 void SculptVR::GLInit()
 {
+
   shPlane.compile("shader/plane.fs", Shader::Type::FRAG);
   shPlane.compile("shader/plane.vs", Shader::Type::VERT);
   shPlane.link();
@@ -189,16 +205,41 @@ void SculptVR::GLInit()
   shModel.link();
 
   msGround.create();
+
+  // Set up the big VBO.
+  glGenVertexArrays(1, &vao);
+  glBindVertexArray(vao);
+  glGenBuffers(1, &vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(temp), temp, GL_DYNAMIC_DRAW);
+
+  glEnableVertexAttribArray(0);
+  glEnableVertexAttribArray(1);
+  glEnableVertexAttribArray(2);
+  
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 32, (void*)0);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 32, (void*)12);
+  glVertexAttribPointer(2, 4, GL_UNSIGNED_SHORT, GL_FALSE, 32, (void*)24);
+  
+  glBindVertexArray(0);
 }
 
 
-void SculptVR::GLDrawScene(glm::mat4& view, glm::mat4& proj)
+void SculptVR::GLDrawScene(const glm::mat4& view, const glm::mat4& proj)
 {
+  // Render the ground plane.
   shPlane.bind();
   shPlane.uniform("u_proj", proj);
   shPlane.uniform("u_view", view);
-  shPlane.uniform("u_model", glm::mat4_cast(viewQuat));
   msGround.render(shPlane);
+
+  // Render the model.
+  shModel.bind();
+  shModel.uniform("u_proj", proj);
+  shModel.uniform("u_view", view);
+  shModel.uniform("u_model", glm::translate(glm::vec3(0.0f, -3.0f, 0.0f)));
+  glBindVertexArray(vao);
+  glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 void printMat(const float* f)
@@ -218,7 +259,17 @@ glm::mat4 convMat(const ovrMatrix4f& m)
 
 void SculptVR::GLRender()
 {
+  glEnable(GL_DEPTH_TEST);
+  
+  // Render non-VR stuff
+  SDL_GL_MakeCurrent(window[0], context[0]);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  GLDrawScene(cameraMat * glm::mat4_cast(viewQuat), glm::perspective(2.0f, 640.0f / 480.0f, 0.1f, 100.0f));
+  SDL_GL_SwapWindow(window[0]);
+
   // Render VR stuff
+  SDL_GL_MakeCurrent(window[1], context[1]);
   ovrPosef pose[2];
   ovrHmd_BeginFrame(hmd, 0);
   ovrHmd_GetEyePoses(hmd, 0, offset, pose, NULL);
@@ -227,15 +278,14 @@ void SculptVR::GLRender()
     auto eye = hmd->EyeRenderOrder[i];
     buffer[eye]->bind();
     auto proj = convMat(ovrMatrix4f_Projection(erd[eye].Fov, 0.1f, 100.0f, 1));
-    glClear(GL_COLOR_BUFFER_BIT);
-    GLDrawScene(cameraMat, proj);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    GLDrawScene(cameraMat * glm::mat4_cast(viewQuat), proj);
   }
   ovrHmd_EndFrame(hmd, pose, tex);
   glUseProgram(0);
 
   GLuint err = glGetError();
-  if (err != 0)
-  {
+  if (err != 0) {
     std::runtime_error(std::to_string(err));
   }
 }
@@ -338,10 +388,8 @@ void SculptVR::RotateModel()
 void SculptVR::Destroy()
 {
   GLCleanup();
-  if (window) {
-    SDL_DestroyWindow(window);
-    window = nullptr;
-  }
+  SDL_DestroyWindow(window[0]);
+  SDL_DestroyWindow(window[1]);
 }
 
 void SculptVR::DismissWarning()

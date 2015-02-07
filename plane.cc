@@ -33,6 +33,7 @@ void Plane::create()
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
   glEnableVertexAttribArray(2);
+  
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 32, (void*)0);
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 32, (void*)12);
   glVertexAttribPointer(2, 4, GL_UNSIGNED_SHORT, GL_FALSE, 32, (void*)24);
@@ -42,7 +43,7 @@ void Plane::create()
 void Plane::render(Shader& shader)
 {
   glBindVertexArray(vao);
-  //shader.uniform("u_model", model);
+  shader.uniform("u_model", model);
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
