@@ -19,8 +19,10 @@ endif()
 
 # Dependencies
 set(OVR_SDK_ROOT "${CMAKE_SOURCE_DIR}/dependencies/OculusSDK")
+set(LEAP_SDK_ROOT "${CMAKE_SOURCE_DIR}/dependencies/LeapSDK")
 find_package(OVR REQUIRED)
-include_directories(${OVR_INCLUDE_DIRS})
+find_package(Leap REQUIRED)
+include_directories(${OVR_INCLUDE_DIRS} ${LEAP_INCLUDE_DIRS})
 
 # Sources
 set(SRC
@@ -31,4 +33,4 @@ set(SRC
 
 # Executable
 add_executable(sculptvr ${SRC})
-target_link_libraries(sculptvr ${OVR_LIBRARIES})
+target_link_libraries(sculptvr ${OVR_LIBRARIES} ${LEAP_LIBRARIES})
