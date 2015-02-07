@@ -32,7 +32,6 @@ set(SRC
   leapmotion.cc
   main.cc
   mesh.cc
-  oculusvr.cc
   plane.cc
   shader.cc
   volume.cc)

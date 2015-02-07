@@ -3,6 +3,9 @@
 // (C) 2014 The Sculpt-VR Team. All rights reserved.
 
 #include "common.h"
+#include "framebuffer.h"
+
+#include <../Src/OVR_CAPI_GL.h>
 
 class SculptVR
 {
@@ -19,7 +22,10 @@ public:
   void Destroy();
 
 private:
+  void HMDInit();
+  void HMDConf();
   void GLInit();
+  void GLDrawScene();
   void GLRender();
   void GLCleanup();
 
@@ -31,22 +37,34 @@ private:
   Shader shPlane;
   Shader shModel;
   Plane  msGround;
+
+  glm::mat4 view;
+  glm::mat4 proj;
+
+  // VR Stuff
+  ovrHmd hmd;
+  ovrVector3f offset[2];
+  ovrTexture tex[2];
+  ovrEyeRenderDesc erd[2];
+  Framebuffer* buffer[2];
+  
 };
 
 
 SculptVR::SculptVR()
-  : window(nullptr)
+  : running(false)
+  , window(nullptr)
   , context(0)
-  , running(false)
   , shModel("model")
   , shPlane("plane")
   , msGround(20.0f, 20.0f, 40, 40)
 {
 }
 
-
 void SculptVR::Init()
 {
+  HMDInit();
+
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
     throw std::runtime_error("Cannot initialise SDL video.");
   }
@@ -57,7 +75,7 @@ void SculptVR::Init()
   
   // Creat the window
   window = SDL_CreateWindow(
-      "SVR", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480,
+      "SVR", SDL_WINDOWPOS_CENTERED_DISPLAY(1), SDL_WINDOWPOS_CENTERED_DISPLAY(1), hmd->Resolution.w, hmd->Resolution.h,
       SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
   if (!window) 
   {
@@ -83,9 +101,69 @@ void SculptVR::Init()
   std::cout << "Renderer: " << renderer << std::endl;
   std::cout << "OpenGL version supported " << version << std::endl;
 
+  HMDConf();
   GLInit();
 }
 
+void SculptVR::HMDInit()
+{
+  ovr_Initialize();
+  hmd = ovrHmd_Create(0);
+  if (!hmd)
+  {
+    std::cerr << "Can't create the HMD handle - is the oculus rift plugged in?" << std::endl;
+    std::cerr << "Using debug HMD" << std::endl;
+    hmd = ovrHmd_CreateDebug(ovrHmd_DK2);
+  }
+  
+  // Display statistics
+  std::cout << "OVR Specs:" << std::endl
+            << "\tName: " << hmd->ProductName << std::endl
+            << "\tManufacturer: " << hmd->Manufacturer << std::endl
+            << "\tResolution: " << hmd->Resolution.w << "x" << hmd->Resolution.h << std::endl;
+}
+
+void SculptVR::HMDConf()
+{
+
+  ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation |
+                                ovrTrackingCap_MagYawCorrection |
+                                ovrTrackingCap_Position, 0);
+  // Set the configuration
+  ovrGLConfig cfg;
+  memset(&cfg, 0, sizeof(ovrGLConfig));
+  cfg.OGL.Header.API = ovrRenderAPI_OpenGL;
+  cfg.OGL.Header.BackBufferSize.w = hmd->Resolution.w;
+  cfg.OGL.Header.BackBufferSize.h = hmd->Resolution.h;
+
+  ovrHmd_ConfigureRendering(hmd, &cfg.Config,
+      ovrDistortionCap_Chromatic | ovrDistortionCap_TimeWarp, hmd->DefaultEyeFov, erd);
+  
+  offset[0] = erd[0].HmdToEyeViewOffset;
+  offset[1] = erd[1].HmdToEyeViewOffset;
+
+  ovrSizei size[2];
+
+  size[0] = ovrHmd_GetFovTextureSize(hmd, ovrEye_Left,  hmd->DefaultEyeFov[0], 1);
+  size[1] = ovrHmd_GetFovTextureSize(hmd, ovrEye_Right, hmd->DefaultEyeFov[1], 1);
+
+  // Initialize the off-screen render buffers. We're using one buffer per-eye
+  // instead of concatenating both eyes into a single buffer.
+  for (int i = 0; i < 2; i++)
+  {
+    if ((buffer[i] = new Framebuffer(size[i].w, size[i].h)))
+    {
+      ovrGLTexture *p = reinterpret_cast<ovrGLTexture*>(tex + i);
+
+      memset(p, 0, sizeof (ovrGLTexture));
+
+      p->OGL.Header.API                 = ovrRenderAPI_OpenGL;
+      p->OGL.Header.TextureSize         = size[i];
+      p->OGL.Header.RenderViewport.Size = size[i];
+      p->OGL.TexId                      = buffer[i]->color;
+    }
+  }
+}
 
 void SculptVR::GLInit()
 {
@@ -101,20 +179,38 @@ void SculptVR::GLInit()
 }
 
 
+void SculptVR::GLDrawScene()
+{
+  shPlane.bind();
+  shPlane.uniform("u_proj", proj);
+  shPlane.uniform("u_view", view);
+  msGround.render(shPlane);
+}
+
+glm::mat4 convMat(const ovrMatrix4f& m)
+{
+  return glm::mat4(m.M[0][0], m.M[0][1], m.M[0][2], m.M[0][3],
+                m.M[1][0], m.M[1][1], m.M[1][2], m.M[1][3],
+                m.M[2][0], m.M[2][1], m.M[2][2], m.M[2][3],
+                m.M[3][0], m.M[3][1], m.M[3][2], m.M[3][3]);
+}
+
 void SculptVR::GLRender()
 {
-  glEnable(GL_DEPTH_TEST);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  
-  shPlane.bind();
-  shPlane.uniform("u_proj", glm::perspective(
-      45.0f, 640.0f / 480.0f, 0.1f, 100.0f));
-  shPlane.uniform("u_view", glm::lookAt(
-      glm::vec3(3.0f, 3.0f, 3.0f), 
-      glm::vec3(0.0f, 0.0f, 0.0f), 
-      glm::vec3(0.0f, 1.0f, 0.0)));
-  msGround.render(shPlane);
+  ovrPosef pose[2];
+ ovrHmd_BeginFrame(hmd, 0);
+  {
+      ovrHmd_GetEyePoses(hmd, 0, offset, pose, NULL);
 
+      for (int i = 0; i < 2; i++)
+      {
+          auto eye = hmd->EyeRenderOrder[i];
+          buffer[eye]->bind();
+          GLDrawScene();
+      }
+  }
+  ovrHmd_EndFrame(hmd, pose, tex);
+  glUseProgram(0);
   GLuint err = glGetError();
   if (err != 0)
   {
@@ -152,7 +248,6 @@ void SculptVR::Run()
     }
     
     GLRender();
-    SDL_GL_SwapWindow(window);
   }
 }
 
