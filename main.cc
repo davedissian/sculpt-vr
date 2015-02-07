@@ -27,7 +27,10 @@ private:
   volatile bool running;
   SDL_Window *window;
   SDL_GLContext context;
+
+  Shader shPlane;
   Shader shModel;
+  Plane  msGround;
 };
 
 
@@ -36,8 +39,11 @@ SculptVR::SculptVR()
   , context(0)
   , running(false)
   , shModel("model")
+  , shPlane("plane")
+  , msGround(20.0f, 20.0f, 40, 40)
 {
 }
+
 
 void SculptVR::Init()
 {
@@ -82,21 +88,46 @@ void SculptVR::Init()
 
 void SculptVR::GLInit()
 {
+  glEnableVertexAttribArray(0);
+  glEnableVertexAttribArray(1);
+  glEnableVertexAttribArray(2);
+  glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LEQUAL);
+
+  shPlane.compile("shader/plane.fs", Shader::Type::FRAG);
+  shPlane.compile("shader/plane.vs", Shader::Type::VERT);
+  shPlane.link();
+
   shModel.compile("shader/model.fs", Shader::Type::FRAG);
   shModel.compile("shader/model.vs", Shader::Type::VERT);
   shModel.link();
+
+  msGround.create();
 }
 
 
 void SculptVR::GLRender()
 {
+  glViewport(0, 0, 640, 480);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  
+  shPlane.bind();
+  shPlane.uniform("u_proj", glm::perspective(
+      45.0f, 640.0f / 480.0f, 0.1f, 100.0f));
+  shPlane.uniform("u_view", glm::lookAt(
+      glm::vec3(3.0f, 3.0f, 3.0f), 
+      glm::vec3(0.0f, 0.0f, 0.0f), 
+      glm::vec3(0.0f, 1.0f, 0.0)));
+  msGround.render(shPlane);
 }
 
 
 void SculptVR::GLCleanup()
 {
   shModel.destroy();
+  shPlane.destroy();
+  msGround.destroy();
 }
 
 
@@ -116,6 +147,7 @@ void SculptVR::Run()
 
 
     GLRender();
+    SDL_GL_SwapWindow(window);
   }
 }
 

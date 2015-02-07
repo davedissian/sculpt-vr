@@ -87,10 +87,10 @@ void Shader::link()
 
     name.resize(maxl);
     glGetActiveUniform(prog, i, maxl, &len, &size, &type, &name[0]);
-    uniforms[name] = glGetUniformLocation(prog, name.c_str());
     while (*name.rbegin() == '\0') {
       name.pop_back();
     }
+    uniforms[name] = glGetUniformLocation(prog, name.c_str());
   }
 }
 
