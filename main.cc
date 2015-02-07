@@ -2,7 +2,7 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2014 The Sculpt-VR Team. All rights reserved.
 
-#include <OVR.h>
+#include "common.h"
 
 class SculptVR
 {
@@ -66,7 +66,7 @@ void SculptVR::Init()
 void SculptVR::GLInit()
 {
   shModel.compile("shader/model.fs", Shader::Type::FRAG);
-  shModel.compile("Shader/model.vs", Shader::Type::VERT);
+  shModel.compile("shader/model.vs", Shader::Type::VERT);
   shModel.link();
 }
 
@@ -74,6 +74,12 @@ void SculptVR::GLInit()
 void SculptVR::GLRender()
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+
+void SculptVR::GLCleanup()
+{
+  shModel.destroy();
 }
 
 
@@ -100,6 +106,7 @@ void SculptVR::Run()
 
 void SculptVR::Destroy()
 {
+  GLCleanup();
   if (renderer) {
     SDL_DestroyRenderer(renderer);
     renderer = nullptr;

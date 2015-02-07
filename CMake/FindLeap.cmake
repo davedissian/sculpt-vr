@@ -7,13 +7,15 @@
 find_path(LEAP_INCLUDE_DIRS Leap.h
   PATHS
     ${LEAP_SDK_ROOT}/include
-    /opt/LeapSDK/include)
+    /opt/LeapSDK/include
+    /opt/leap-sdk/include)
 
 find_library(LEAP_LIBRARIES
   NAMES Leap
   PATH_SUFFIXES libstdc++
   PATHS
     ${LEAP_SDK_ROOT}/lib
-    /opt/LeapSDK/lib)
+    /opt/LeapSDK/lib
+    /opt/leap-sdk/lib/x64)
 
 find_package_handle_standard_args(Leap REQUIRED_VARS LEAP_INCLUDE_DIRS LEAP_LIBRARIES)
