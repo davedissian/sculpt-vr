@@ -306,9 +306,22 @@ static const int8_t triTable[256][16] =
 {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 
 static void 
-Interpolate(Point& p1, Point& p2, Vertex& out)
+Interpolate(float x1, float y1, float z1, Point& p1, 
+            float x2, float y2, float z2, Point& p2, 
+            Vertex& out)
 {
+  float d = (ISO_LIMIT - p1.isoValue) / (p2.isoValue - p1.isoValue);
+  
+  /* Interpolate x, y, z */
+  out.x = x1 + d * (x2 - x1);
+  out.y = y1 + d * (y2 - y1);
+  out.z = z1 + d * (z2 - z1);
 
+  /* Interpolate rgba. */
+  out.r = p1.r + d * (p2.r - p1.r);
+  out.g = p1.g + d * (p2.g - p1.g);
+  out.b = p1.b + d * (p2.b - p1.b);
+  out.a = p1.a + d * (p2.a - p1.a);
 }
 
 void 
@@ -369,7 +382,9 @@ Volume::VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out)
   if (edgeTable[voxel_index] & 1)
   {
     /* Interpolate between points 0 and point 1. */
-    Interpolate(grid[ x      * X_OFFSET + (y + 1) * Y_OFFSET + z    ],
+    Interpolate(x, y + 1, z,
+                grid[ x      * X_OFFSET + (y + 1) * Y_OFFSET + z    ],
+                x + 1, y + 1, z,
                 grid[(x + 1) * X_OFFSET + (y + 1) * Y_OFFSET + z    ],
                 vertex_list[0]);
   }
@@ -377,7 +392,9 @@ Volume::VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out)
   if (edgeTable[voxel_index] & 2)
   {
     /* Interpolate between points 1 and point 2. */
-    Interpolate(grid[(x + 1) * X_OFFSET + (y + 1) * Y_OFFSET + z    ],
+    Interpolate(x + 1, y + 1, z,
+                grid[(x + 1) * X_OFFSET + (y + 1) * Y_OFFSET + z    ],
+                x + 1, y, z,
                 grid[(x + 1) * X_OFFSET +  y      * Y_OFFSET + z    ],
                 vertex_list[1]);
   }
@@ -385,7 +402,9 @@ Volume::VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out)
   if (edgeTable[voxel_index] & 4)
   {
     /* Interpolate between points 2 and 3. */
-    Interpolate(grid[(x + 1) * X_OFFSET +  y      * Y_OFFSET + z    ],
+    Interpolate(x + 1, y, z, 
+                grid[(x + 1) * X_OFFSET +  y      * Y_OFFSET + z    ],
+                x, y, z,
                 grid[ x      * X_OFFSET +  y      * Y_OFFSET + z    ],
                 vertex_list[2]);
 
@@ -394,7 +413,9 @@ Volume::VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out)
   if (edgeTable[voxel_index] & 8)
   {
     /* Interpolate between points 3 and 0. */
-    Interpolate(grid[ x      * X_OFFSET +  y      * Y_OFFSET + z    ],
+    Interpolate(x, y, z,
+                grid[ x      * X_OFFSET +  y      * Y_OFFSET + z    ],
+                x, y + 1, z,
                 grid[ x      * X_OFFSET + (y + 1) * Y_OFFSET + z    ],
                 vertex_list[3]);
   }
@@ -402,7 +423,9 @@ Volume::VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out)
   if (edgeTable[voxel_index] & 16)
   {
     /* Interpolate between points 4 and 5. */
-    Interpolate(grid[ x      * X_OFFSET + (y + 1) * Y_OFFSET + z + 1],
+    Interpolate(x, y + 1, z + 1,
+                grid[ x      * X_OFFSET + (y + 1) * Y_OFFSET + z + 1],
+                x + 1, y + 1, z + 1,
                 grid[(x + 1) * X_OFFSET + (y + 1) * Y_OFFSET + z + 1],
                 vertex_list[4]);
   }    
@@ -410,7 +433,9 @@ Volume::VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out)
   if (edgeTable[voxel_index] & 32)
   {
     /* Interpolate between points 5 and 6. */
-    Interpolate(grid[(x + 1) * X_OFFSET + (y + 1) * Y_OFFSET + z + 1],
+    Interpolate(x + 1, y + 1, z + 1,
+                grid[(x + 1) * X_OFFSET + (y + 1) * Y_OFFSET + z + 1],
+                x + 1, y, z + 1,
                 grid[(x + 1) * X_OFFSET +  y      * Y_OFFSET + z + 1],
                 vertex_list[5]);
   }
@@ -418,7 +443,9 @@ Volume::VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out)
   if (edgeTable[voxel_index] & 64)
   {
     /* Interpolate between points 6 and 7. */
-    Interpolate(grid[(x + 1) * X_OFFSET +  y      * Y_OFFSET + z + 1],
+    Interpolate(x + 1, y, z + 1,
+                grid[(x + 1) * X_OFFSET +  y      * Y_OFFSET + z + 1],
+                x, y, z + 1,
                 grid[ x      * X_OFFSET +  y      * Y_OFFSET + z + 1],
                 vertex_list[6]);
   }
@@ -426,7 +453,9 @@ Volume::VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out)
   if (edgeTable[voxel_index] & 128)
   {
     /* Interpolate between points 7 and 4. */
-    Interpolate(grid[ x      * X_OFFSET +  y      * Y_OFFSET + z + 1],
+    Interpolate(x, y, z + 1,
+                grid[ x      * X_OFFSET +  y      * Y_OFFSET + z + 1],
+                x, y + 1, z + 1,
                 grid[ x      * X_OFFSET + (y + 1) * Y_OFFSET + z + 1],
                 vertex_list[7]);  
   }
@@ -434,7 +463,9 @@ Volume::VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out)
   if (edgeTable[voxel_index] & 256)
   {
     /* Interpolate between points 0 and 4. */
-    Interpolate(grid[ x      * X_OFFSET + (y + 1) * Y_OFFSET + z    ],
+    Interpolate(x, y + 1, z,
+                grid[ x      * X_OFFSET + (y + 1) * Y_OFFSET + z    ],
+                x, y + 1, z + 1,
                 grid[ x      * X_OFFSET + (y + 1) * Y_OFFSET + z + 1],
                 vertex_list[8]); 
   }
@@ -442,7 +473,9 @@ Volume::VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out)
   if (edgeTable[voxel_index] & 512)
   {
     /* Interpolate between points 1 and 5. */
-    Interpolate(grid[(x + 1) * X_OFFSET + (y + 1) * Y_OFFSET + z    ],
+    Interpolate(x + 1, y + 1, z,
+                grid[(x + 1) * X_OFFSET + (y + 1) * Y_OFFSET + z    ],
+                x + 1, y + 1, z + 1,
                 grid[(x + 1) * X_OFFSET + (y + 1) * Y_OFFSET + z + 1],
                 vertex_list[9]);
   }
@@ -450,7 +483,9 @@ Volume::VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out)
   if (edgeTable[voxel_index] & 1024)
   {
     /* Interpolate between points 2 and 6. */
-    Interpolate(grid[(x + 1) * X_OFFSET +  y      * Y_OFFSET + z    ],
+    Interpolate(x + 1, y, z,
+                grid[(x + 1) * X_OFFSET +  y      * Y_OFFSET + z    ],
+                x + 1, y, z + 1,
                 grid[(x + 1) * X_OFFSET +  y      * Y_OFFSET + z + 1],
                 vertex_list[10]);
   }
@@ -458,7 +493,9 @@ Volume::VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out)
   if (edgeTable[voxel_index] & 2048)
   {
     /* Interpolate between points 3 and 7. */
-    Interpolate(grid[ x      * X_OFFSET +  y      * Y_OFFSET + z    ],
+    Interpolate(x, y, z,
+                grid[ x      * X_OFFSET +  y      * Y_OFFSET + z    ],
+                x, y, z + 1,
                 grid[ x      * X_OFFSET +  y      * Y_OFFSET + z + 1],
                 vertex_list[11]);
   }
