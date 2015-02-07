@@ -11,7 +11,7 @@ if(UNIX)
     if(APPLE)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
         if(XCODE)
-            set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
+            set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++11")
             set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
         endif()
     endif()
@@ -29,6 +29,10 @@ set(SRC
   shader.cc
   volume.cc)
 
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  set(PLATFORM_LIBS glfw X11 GL rt Xrandr)
+endif ()
+
 # Executable
 add_executable(sculptvr ${SRC})
-target_link_libraries(sculptvr ${OVR_LIBRARIES})
+target_link_libraries(sculptvr ${OVR_LIBRARIES} ${PLATFORM_LIBS})
