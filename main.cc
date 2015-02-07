@@ -3,6 +3,8 @@
 // (C) 2014 The Sculpt-VR Team. All rights reserved.
 
 #include "common.h"
+#include "LeapMotion.h"
+#include "Volume.h"
 
 class SculptVR
 {
@@ -30,10 +32,10 @@ private:
   SDL_Window *window;
   SDL_GLContext context;
 
+  //LeapMotion leap;
   Shader shPlane;
   Shader shModel;
   Plane  msGround;
-
   int vpWidth = 640;
   int vpHeight = 480;
   bool mouseDown;
@@ -41,6 +43,7 @@ private:
   glm::ivec2 mousePos;
   glm::quat viewQuat;
   glm::mat4 cameraMat;
+  Volume volume;
 };
 
 
@@ -57,6 +60,7 @@ SculptVR::SculptVR()
       glm::vec3(7.0f, 7.0f, 7.0f),
       glm::vec3(0.0f, 0.0f, 0.0f),
       glm::vec3(0.0f, 1.0f, 0.0f)))
+  , volume(512)
 {
 }
 

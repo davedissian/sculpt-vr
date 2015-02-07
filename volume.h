@@ -24,6 +24,16 @@ public:
   Volume(size_t size) {
     grid.resize(size * size * size);
     memset(&grid[0], 0, sizeof(Point) * size * size * size);
+
+    // Fill with dummy data
+    for (size_t i = 0; i < (size * size * size); ++i)
+    {
+      grid[i].isoValue = 1;
+      grid[i].r = 0xff;
+      grid[i].g = 0xff;
+      grid[i].b = 0xff;
+      grid[i].a = 0xff;
+    }
   }
 
   /**
