@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 project(sculptvr)
 
+include(FindPkgConfig)
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMake/")
 
 # Enable C++11
@@ -20,7 +22,9 @@ endif()
 # Dependencies
 set(OVR_SDK_ROOT "${CMAKE_SOURCE_DIR}/dependencies/OculusSDK")
 find_package(OVR REQUIRED)
-include_directories(${OVR_INCLUDE_DIRS})
+pkg_search_module(SDL2 REQUIRED sdl2)
+
+include_directories(${OVR_INCLUDE_DIRS} ${SDL2_INCLUDE_DIRS})
 
 # Sources
 set(SRC
@@ -30,9 +34,13 @@ set(SRC
   volume.cc)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  set(PLATFORM_LIBS glfw X11 GL rt Xrandr)
+  set(PLATFORM_LIBS glfw X11 GL rt Xrandr SDL2 GLEW)
 endif ()
 
 # Executable
 add_executable(sculptvr ${SRC})
-target_link_libraries(sculptvr ${OVR_LIBRARIES} ${PLATFORM_LIBS})
+target_link_libraries(
+    sculptvr 
+    ${OVR_LIBRARIES} 
+    ${SDL2_LIBRARIES} 
+    ${PLATFORM_LIBS})

@@ -9,6 +9,12 @@
 #include <unordered_map>
 #include <iostream>
 #include <algorithm>
+#include <iostream>
+#include <exception>
+
+#include <OVR.h>
+#include <SDL2/SDL.h>
+#include <GL/glew.h>
 
 
 #endif /* __COMMON_H__ */
