@@ -36,6 +36,7 @@ private:
 
 SculptVR::SculptVR()
   : window(nullptr)
+  , context(0)
   , running(false)
   , shModel("model")
   , shPlane("plane")
@@ -143,6 +144,7 @@ void SculptVR::Run()
         break;
       }
     }
+
 
     GLRender();
     SDL_GL_SwapWindow(window);
