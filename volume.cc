@@ -309,9 +309,9 @@ Interpolate(float x1, float y1, float z1, Point& p1,
   float d = (ISO_LIMIT - p1.isoValue) / (p2.isoValue - p1.isoValue);
   
   /* Interpolate x, y, z */
-  out.x = x1 + d * (x2 - x1);
-  out.y = y1 + d * (y2 - y1);
-  out.z = z1 + d * (z2 - z1);
+  out.x = ((x1 + d * (x2 - x1)) - 3) / 128 - 1.5;
+  out.y = ((y1 + d * (y2 - y1)) - 3) / 128 - 1.5;
+  out.z = ((z1 + d * (z2 - z1)) - 3) / 128 - 1.5;
 
   /* Interpolate rgba. */
   out.r = p1.r + d * (p2.r - p1.r);

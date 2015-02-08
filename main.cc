@@ -231,7 +231,7 @@ void SculptVR::RebuildModel()
   
   triangles.clear();
   //volume.FillCube(10, 10, 10, 10, 1, 0xff, 0xff, 0xff, 0xff);
-  volume.FillSphere(10, 10, 10, 5, 1, 0xff, 0xff, 0xff, 0xff);
+  volume.FillSphere(50, 50, 50, 50, 1, 0xff, 0xff, 0xff, 0xff);
   volume.GridToTris(triangles);
 
   glBufferData(
