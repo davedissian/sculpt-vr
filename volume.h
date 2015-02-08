@@ -73,6 +73,16 @@ public:
    */
   void ClearVolume(void);
 
+  /**
+   * Determines if any of the neighbouring points are filled.
+   *
+   * @param x X coordinate
+   * @param y y coordinate
+   * @param z z coordinate   
+   * @return true if any of the neighbouring points are filled, false otherwise
+   */
+  bool HasNeighbours(size_t x, size_t y, size_t z);
+
   void SetPosition(const glm::vec3& p) { position = p; }
   glm::vec3 GetPosition() const { return position; }
   glm::vec3 HalfSize() const { return glm::vec3(0.75f); }

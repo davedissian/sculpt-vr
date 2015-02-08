@@ -642,3 +642,19 @@ Volume::ExportOBJ(const std::string& file, const std::vector<Triangle>& trgs)
   }
   of.close();
 }
+
+bool
+Volume::HasNeighbours(size_t x, size_t y, size_t z)
+{
+  if ((x > 0 && grid[(x - 1) * X_OFFSET + y * Y_OFFSET + z].isoValue != 0) ||
+      (x < (size - 1) && grid[(x + 1) * X_OFFSET + y * Y_OFFSET + z].isoValue != 0) ||
+      (y > 0 && grid[x * X_OFFSET + (y - 1) * Y_OFFSET + z].isoValue != 0) ||
+      (y < (size - 1) && grid[x * X_OFFSET + (y + 1) * Y_OFFSET + z].isoValue != 0) ||
+      (z > 0 && grid[x * X_OFFSET + y * Y_OFFSET + z - 1].isoValue != 0) ||
+      (z < (size - 1) && grid[x * X_OFFSET + y * Y_OFFSET + z + 1].isoValue != 0))
+  {
+    return true;
+  }
+  return false;
+}
+

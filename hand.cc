@@ -102,14 +102,16 @@ bool Hand::render(Shader& shader, const glm::mat4& headMatrix)
   switch (type) {
     case Type::LEFT: {
       colour = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
-      if (volume.FillCube(p.x, p.y, p.z, 2, 1)) {
+      if (volume.FillCube(p.x, p.y, p.z, 2, 1) && 
+          volume.HasNeighbours(p.x, p.y, p.z)) {
         update = true;
       }
       break;
     }
     case Type::RIGHT: {
       colour = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
-      if (volume.FillCube(p.x, p.y, p.z, 3, 0)) {
+      if (volume.FillCube(p.x, p.y, p.z, 3, 0) && 
+          volume.HasNeighbours(p.x, p.y, p.z)) {
         update = true;
       }
       break;
