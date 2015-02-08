@@ -1,6 +1,6 @@
 #version 330 core
 
-const vec3 LIGHT_DIR = vec3(-0.74f, 0.0f, 0.74f);
+const vec3 LIGHT_DIR = vec3(-0.74f, 0.0f, -0.74f);
 
 out vec4 colour;
 

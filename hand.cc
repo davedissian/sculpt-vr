@@ -60,7 +60,6 @@ glm::mat4 placeCubeBetween(glm::vec3 a, glm::vec3 b, float thickness)
 {
   glm::vec3 delta = b - a;
   float length = glm::length(delta);
-  float angle = std::acos(delta.y / length);
   return glm::translate((a + b) * 0.5f)
     * glm::mat4_cast(glm::rotation(glm::vec3(0.0f, 1.0f, 0.0f), delta / length))
     * glm::scale(glm::vec3(thickness, length, thickness));
@@ -88,7 +87,9 @@ bool Hand::render(Shader& shader, const glm::mat4& headMatrix)
   glm::vec4 colour;
   bool update = false;
 
-  glm::vec3 p = (wrist + glm::vec3(0, 0, 0)) * 64.0f / 3.0f;
+  // Points [i][j][k] (i is the finger index, j is the bone index (4 is the tip), k is the front/back
+  glm::vec3 indexTip(headMatrix * glm::vec4(points[1][4][0], 1.0f)); indexTip.y *= -1.0f;
+  glm::vec3 p = (indexTip + glm::vec3(0, 0, 0)) * 64.0f / 3.0f;
 
   switch (type) {
     case Type::LEFT: {
@@ -121,20 +122,11 @@ bool Hand::render(Shader& shader, const glm::mat4& headMatrix)
       shader.uniform("u_model", placeCubeBetween(a, b, 0.1f));
       glDrawArrays(GL_TRIANGLES, 0, 36);
     }
-
-    // Draw tips
-    glm::vec3 tip(headMatrix * glm::vec4(points[i][4][0], 1.0f)); tip.y *= -1.0f;
-    shader.uniform("u_colour", glm::vec4(0.75f, 0.0f, 0.0f, 1.0f));
-    shader.uniform("u_model", glm::translate(tip) * glm::scale(glm::vec3(0.1f)));
-    glDrawArrays(GL_TRIANGLES, 0, 36);
   }
-
-  // Draw wrists
-  glm::vec3 w(headMatrix * glm::vec4(wrist, 1.0f)); w.y *= -1.0f;
-  shader.uniform("u_colour", glm::vec4(1.0f, 0.25f, 0.25f, 1.0f));
-  shader.uniform("u_model", glm::translate(w) * glm::scale(glm::vec3(0.2f)));
+  
+  shader.uniform("u_colour", glm::vec4(0.75f, 0.0f, 0.0f, 1.0f));
+  shader.uniform("u_model", glm::translate(indexTip) * glm::scale(glm::vec3(0.1f)));
   glDrawArrays(GL_TRIANGLES, 0, 36);
-
 
   return update;
 }
@@ -161,14 +153,14 @@ bool Hand::update(const Leap::Hand& hand)
       auto bone = (*f).bone((Leap::Bone::Type)j);
       auto p = bone.prevJoint();
       auto p2 = bone.nextJoint();
-      points[i][j][0] = glm::vec3(-p.x, p.z, -p.y) / 100.0f;
-      points[i][j][1] = glm::vec3(-p2.x, p2.z, -p2.y) / 100.0f;
+      points[i][j][0] = glm::vec3(-p.x, p.z, -p.y) / 200.0f;
+      points[i][j][1] = glm::vec3(-p2.x, p2.z, -p2.y) / 200.0f;
     }
 
     auto tip = (*f).tipPosition();
-    points[i][4][0] = glm::vec3(-tip.x, tip.z, -tip.y) / 100.0f;
+    points[i][4][0] = glm::vec3(-tip.x, tip.z, -tip.y) / 200.0f;
   }
-  wrist = glm::vec3(-hand.wristPosition().x, hand.wristPosition().z, -hand.wristPosition().y) / 100.0f;
+  wrist = glm::vec3(-hand.wristPosition().x, hand.wristPosition().z, -hand.wristPosition().y) / 200.0f;
   tracked = true;
   return true;
 }
