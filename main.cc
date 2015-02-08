@@ -55,6 +55,7 @@ private:
   void onConnect(const Leap::Controller& c) {
     std::cout << "Connected to leap motion controller." << std::endl;
   }
+  void CreateVolume(void);
 
   void onFrame(const Leap::Controller& c) {
     leftHand.tracked = false;
@@ -272,6 +273,14 @@ void SculptVR::GLInit()
   RebuildModel();
 }
 
+void SculptVR::CreateVolume()
+{
+  volume.ClearVolume();
+  volume.FillSphere(15, 15, 15, 15, 1);
+  triangles.clear();
+  volume.GridToTris(triangles);
+}
+
 void SculptVR::RebuildModel()
 {
   // Set up the big VBO.
@@ -281,11 +290,7 @@ void SculptVR::RebuildModel()
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
   
-  triangles.clear();
-  //volume.FillCube(10, 10, 10, 10, 1);
-  volume.FillSphere(15, 15, 15, 15, 1);
-  //volume.FillSphere(50, 50, 50, 50, 1);
-  volume.GridToTris(triangles);
+  CreateVolume();
 
   glBufferData(
       GL_ARRAY_BUFFER, 
@@ -422,6 +427,19 @@ void SculptVR::Run()
         }
         case SDL_KEYDOWN: {
           DismissWarning();
+          switch (evt.key.keysym.sym) {
+            case SDLK_r: {
+              CreateVolume();
+              break;
+            }
+            case SDLK_e: {
+              Volume::ExportOBJ("/tmp/test.obj", triangles);
+              break;
+            }
+            default: {
+              break;
+            }
+          }
           break;
         }
         case SDL_MOUSEBUTTONDOWN: {

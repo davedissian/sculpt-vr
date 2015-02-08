@@ -601,9 +601,44 @@ Volume::FillSphere(size_t x, size_t y, size_t z, size_t radius, float isoValue)
   return changes;
 }
 
+void
+Volume::ClearVolume(void)
+{
+  for (size_t i = 0; i < (size * size * size); ++i)
+  {
+    grid[i].isoValue = 0;
+  }
+}
+
 
 void
 Volume::ExportOBJ(const std::string& file, const std::vector<Triangle>& trgs)
 {
+  std::ofstream of(file);
 
+  std::cout << "Exporting to " << file << std::endl;
+
+  // Export vertices.
+  for (const auto& trg : trgs) {
+    of << "v " << trg.v0.x << " " << trg.v0.y << " " << trg.v0.z << std::endl;
+    of << "v " << trg.v1.x << " " << trg.v1.y << " " << trg.v1.z << std::endl;
+    of << "v " << trg.v2.x << " " << trg.v2.y << " " << trg.v2.z << std::endl;
+  }
+
+  // Export vertices.
+  for (const auto& trg : trgs) {
+    of << "vn " << trg.v0.nx << " " << trg.v0.ny << " " << trg.v0.nz << std::endl;
+    of << "vn " << trg.v1.nx << " " << trg.v1.ny << " " << trg.v1.nz << std::endl;
+    of << "vn " << trg.v2.nx << " " << trg.v2.ny << " " << trg.v2.nz << std::endl;
+  }
+
+  // Export faces.
+  for (size_t i = 0; i < trgs.size(); ++i) {
+    of << "f "
+       << (3 * i + 1) << "//" << (3 * i + 1) << " "
+       << (3 * i + 2) << "//" << (3 * i + 2) << " "
+       << (3 * i + 3) << "//" << (3 * i + 3)
+       << std::endl;
+  }
+  of.close();
 }
