@@ -23,12 +23,6 @@ public:
   {
     grid.resize(size * size * size);
     memset(&grid[0], 0, sizeof(Point) * size * size * size);
-
-    // Fill with dummy data
-    for (size_t i = 0; i < (size * size * size); ++i)
-    {
-      grid[i].isoValue = 0;
-    }
   }
 
   /**
@@ -64,6 +58,11 @@ public:
    * @return true if the sphere changed, false otherwise.     
    */
   bool FillSphere(size_t x, size_t y, size_t z, size_t radius, float isoValue);
+
+  /**
+   * Clears the volume i.e. sets iso values to 0.
+   */
+  void ClearVolume(void);
 
 private:
   void VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out);

@@ -601,6 +601,15 @@ Volume::FillSphere(size_t x, size_t y, size_t z, size_t radius, float isoValue)
   return changes;
 }
 
+void
+Volume::ClearVolume(void)
+{
+  for (size_t i = 0; i < (size * size * size); ++i)
+  {
+    grid[i].isoValue = 0;
+  }
+}
+
 
 
 
