@@ -312,12 +312,6 @@ Interpolate(float x1, float y1, float z1, Point& p1,
   out.x = ((x1 + d * (x2 - x1)) * 3) / 64;
   out.y = ((y1 + d * (y2 - y1)) * 3) / 64;
   out.z = ((z1 + d * (z2 - z1)) * 3) / 64;
-
-  /* Interpolate rgba. */
-  out.r = (uint16_t)(p1.r + d * (p2.r - p1.r)) << 8;
-  out.g = (uint16_t)(p1.g + d * (p2.g - p1.g)) << 8;
-  out.b = (uint16_t)(p1.b + d * (p2.b - p1.b)) << 8;
-  out.a = (uint16_t)(p1.a + d * (p2.a - p1.a)) << 8;
 }
 
 static void
@@ -574,10 +568,6 @@ Volume::FillCube(size_t x, size_t y, size_t z, size_t edge_len,
         float& iso = grid[i * X_OFFSET + j * Y_OFFSET + k].isoValue;
         changes = changes || (iso != isoValue);
         iso = isoValue;
-        grid[i * X_OFFSET + j * Y_OFFSET + k].r = r;
-        grid[i * X_OFFSET + j * Y_OFFSET + k].g = g;
-        grid[i * X_OFFSET + j * Y_OFFSET + k].b = b;
-        grid[i * X_OFFSET + j * Y_OFFSET + k].a = a;
       }
     }
   }
@@ -605,11 +595,7 @@ Volume::FillSphere(size_t x, size_t y, size_t z, size_t radius,
         {
           float& iso = grid[i * X_OFFSET + j * Y_OFFSET + k].isoValue;
           changes = changes || (iso != isoValue);
-          iso = isoValue;
-          grid[i * X_OFFSET + j * Y_OFFSET + k].r = r;
-          grid[i * X_OFFSET + j * Y_OFFSET + k].g = g;
-          grid[i * X_OFFSET + j * Y_OFFSET + k].b = b;
-          grid[i * X_OFFSET + j * Y_OFFSET + k].a = a;          
+          iso = isoValue;          
         }
       }
     }

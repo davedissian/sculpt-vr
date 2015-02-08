@@ -237,12 +237,12 @@ void SculptVR::SDLCreateWindow(int width, int height, SDL_Window** window, SDL_G
 
 static const Vertex temp[] =
 {
-  { -1.0f, 2.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF}, 
-  {  1.0f, 2.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF},
-  {  1.0f, 2.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF},
-  { -1.0f, 2.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF},
-  { -1.0f, 2.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF},
-  {  1.0f, 2.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF}
+  { -1.0f, 2.0f, -1.0f, 0.0f, 1.0f, 0.0f}, 
+  {  1.0f, 2.0f, -1.0f, 0.0f, 1.0f, 0.0f},
+  {  1.0f, 2.0f,  1.0f, 0.0f, 1.0f, 0.0f},
+  { -1.0f, 2.0f,  1.0f, 0.0f, 1.0f, 0.0f},
+  { -1.0f, 2.0f, -1.0f, 0.0f, 1.0f, 0.0f},
+  {  1.0f, 2.0f,  1.0f, 0.0f, 1.0f, 0.0f}
 };
 
 
@@ -280,7 +280,6 @@ void SculptVR::RebuildModel()
 
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
-  glEnableVertexAttribArray(2);
   
   triangles.clear();
   //volume.FillCube(10, 10, 10, 10, 1, 0xff, 0xff, 0xff, 0xff);
@@ -293,9 +292,8 @@ void SculptVR::RebuildModel()
       triangles.size() * sizeof(Triangle), 
       &triangles[0], 
       GL_DYNAMIC_DRAW);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 32, (void*)0);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 32, (void*)12);
-  glVertexAttribPointer(2, 4, GL_UNSIGNED_SHORT, GL_TRUE, 32, (void*)24);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 24, (void*)0);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 24, (void*)12);
 
   std::cout << "Size: " << triangles.size() << std::endl;
 
@@ -317,6 +315,7 @@ void SculptVR::GLDrawScene(const glm::mat4& view, const glm::mat4& proj)
   if (leftHand.render(shHand, headMatrix) || 
       rightHand.render(shHand, headMatrix)) 
   {
+    triangles.clear();
     volume.GridToTris(triangles);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);

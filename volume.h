@@ -11,15 +11,13 @@
 struct Point 
 {
   float isoValue;
-  uint8_t r, g, b, a;
 } __attribute__((packed));
-
 
 class Volume
 {
 public:
 
-  static_assert(sizeof(Point) == 8, "Invalid point size.");
+  //static_assert(sizeof(Point) == 8, "Invalid point size.");
 
   Volume(size_t size) 
     : size(size)
@@ -33,10 +31,6 @@ public:
     for (size_t i = 0; i < (size * size * size); ++i)
     {
       grid[i].isoValue = 0;
-      grid[i].r = 0xff;
-      grid[i].g = 0xff;
-      grid[i].b = 0xff;
-      grid[i].a = 0xff;
     }
   }
 
