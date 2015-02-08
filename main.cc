@@ -118,18 +118,18 @@ SculptVR::SculptVR()
   , shModel("model")
   , shPlane("plane")
   , shHand("hand")
-  , volume(32)
+  , volume(64)
   , leftHand(Hand::Type::LEFT, volume)
   , rightHand(Hand::Type::RIGHT, volume)
   , msGround(20.0f, 20.0f)
   , mouseDown(false)
   , viewQuat(1, 0, 0, 0)
   , cameraMat()
-  , headOrigin(0.0f, 1.6f, 2.0f)
+  , headOrigin(0.0f, 1.6f, 0.5f)
 {
   triangles.resize(2000);
   cameraMat = glm::lookAt(
-    glm::vec3(2.0f, 2.0f, 2.0f),
+    glm::vec3(1.0f, 1.0f, 1.0f),
     glm::vec3(0.0f, headOrigin.y, 0.0f),
     glm::vec3(0.0f, 1.0f, 0.0f));
 }
@@ -295,7 +295,8 @@ void SculptVR::CreateVolume()
   glEnableVertexAttribArray(1);
 
   volume.ClearVolume();
-  volume.FillCube(2, 2, 2, 26, 1);
+  size_t size = volume.Detail();
+  volume.FillCube(size / 8, size / 8, size / 8, size * 3 / 4, 1);
   triangles.clear();
   volume.GridToTris(triangles);
 

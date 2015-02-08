@@ -17,7 +17,8 @@ class Volume
 {
 public:
   Volume(size_t size) 
-    : size(size)
+    : realSize(0.5f)
+    , size(size)
     , X_OFFSET(size * size)
     , Y_OFFSET(size)
   {
@@ -75,7 +76,9 @@ public:
 
   void SetPosition(const glm::vec3& p) { position = p; }
   glm::vec3 GetPosition() const { return position; }
-  glm::vec3 HalfSize() const { return glm::vec3(0.75f); }
+  glm::vec3 HalfSize() const { return glm::vec3(realSize * 0.5f); }
+  float RealSize() const { return realSize; }
+  size_t Detail() const { return size; }
 
 private:
   void VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out);
@@ -84,6 +87,7 @@ private:
   std::vector<Point> grid;
   
   /* grid size. */
+  float realSize;
   size_t size;
 
   /* Coordinate offsets. */
@@ -91,6 +95,10 @@ private:
   const uint32_t Y_OFFSET;
 
   glm::vec3 position;
+
+  void Interpolate(float x1, float y1, float z1, Point& p1, 
+    float x2, float y2, float z2, Point& p2, 
+    Vertex& out);
 
 };
 

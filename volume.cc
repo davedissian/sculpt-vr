@@ -301,19 +301,6 @@ static const int8_t triTable[256][16] =
 {0, 3, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 
-static void 
-Interpolate(float x1, float y1, float z1, Point& p1, 
-            float x2, float y2, float z2, Point& p2, 
-            Vertex& out)
-{
-  float d = (ISO_LIMIT - p1.isoValue) / (p2.isoValue - p1.isoValue);
-  
-  /* Interpolate x, y, z */
-  out.x = ((x1 + d * (x2 - x1)) * 3) / 64 - 0.75f;
-  out.y = ((y1 + d * (y2 - y1)) * 3) / 64 - 0.75f;
-  out.z = ((z1 + d * (z2 - z1)) * 3) / 64 - 0.75f;
-}
-
 static void
 Normalise(Vertex& v1, Vertex& v2, Vertex& v3)
 {
@@ -641,4 +628,18 @@ Volume::ExportOBJ(const std::string& file, const std::vector<Triangle>& trgs)
        << std::endl;
   }
   of.close();
+}
+
+void 
+Volume::Interpolate(float x1, float y1, float z1, Point& p1, 
+            float x2, float y2, float z2, Point& p2, 
+            Vertex& out)
+{
+  float d = (ISO_LIMIT - p1.isoValue) / (p2.isoValue - p1.isoValue);
+  
+  /* Interpolate x, y, z */
+  float scale = realSize / size;
+  out.x = (x1 + d * (x2 - x1)) * scale - realSize * 0.5f;
+  out.y = (y1 + d * (y2 - y1)) * scale - realSize * 0.5f;
+  out.z = (z1 + d * (z2 - z1)) * scale - realSize * 0.5f;
 }
