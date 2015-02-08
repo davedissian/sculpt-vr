@@ -94,7 +94,7 @@ bool Hand::render(Shader& shader, const glm::mat4& headMatrix)
     case Type::LEFT: {
       colour = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
       std::cerr << p.x << " " << p.y << " " << p.z << std::endl;
-      if (volume.FillCube(p.x, p.y, p.z, 5, 1, 0xff, 0xff, 0xff, 0xff)) {
+      if (volume.FillCube(p.x, p.y, p.z, 5, 1)) {
         update = true;
       }
       break;

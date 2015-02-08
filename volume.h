@@ -16,9 +16,6 @@ struct Point
 class Volume
 {
 public:
-
-  //static_assert(sizeof(Point) == 8, "Invalid point size.");
-
   Volume(size_t size) 
     : size(size)
     , X_OFFSET(size * size)
@@ -51,14 +48,9 @@ public:
    * @param z z coordinate of the bottom left corner
    * @param edge_len Edge length
    * @param isoValue Iso value
-   * @param r Red sample
-   * @param g Green sample
-   * @param b Blue sample
-   * @param a Alpha chanel
    * @return true if the cube changed, false otherwise.              
    */
-  bool FillCube(size_t x, size_t y, size_t z, size_t edge_len,
-                float isoValue, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+  bool FillCube(size_t x, size_t y, size_t z, size_t edge_len, float isoValue);
 
   /**
    * Fills in a cube centered at (x, y, z) with 
@@ -69,14 +61,9 @@ public:
    * @param z z coordinate of the bottom left corner
    * @param radius Radius
    * @param isoValue Iso value
-   * @param r Red sample
-   * @param g Green sample
-   * @param b Blue sample
-   * @param a Alpha chanel
    * @return true if the sphere changed, false otherwise.     
    */
-  bool FillSphere(size_t x, size_t y, size_t z, size_t radius,
-                  float isoValue, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+  bool FillSphere(size_t x, size_t y, size_t z, size_t radius, float isoValue);
 
 private:
   void VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out);

@@ -555,8 +555,7 @@ Volume::GridToTris(std::vector<Triangle>& out)
 }
 
 bool 
-Volume::FillCube(size_t x, size_t y, size_t z, size_t edge_len,
-                 float isoValue, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+Volume::FillCube(size_t x, size_t y, size_t z, size_t edge_len, float isoValue)
 {
   bool changes = false;
   for (size_t i = x; i < std::min(x + edge_len, size - 1); ++i)
@@ -575,8 +574,7 @@ Volume::FillCube(size_t x, size_t y, size_t z, size_t edge_len,
 }
 
 bool
-Volume::FillSphere(size_t x, size_t y, size_t z, size_t radius,
-                   float isoValue, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+Volume::FillSphere(size_t x, size_t y, size_t z, size_t radius, float isoValue)
 {
   bool changes = false;
   for (size_t i = ((radius > x) ? 0 : (x - radius)); 
