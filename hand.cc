@@ -4,15 +4,44 @@
 
 #include "common.h"
 
-static const Vertex PLANE_MESH[] =
+static const Vertex CUBE_MESH[] =
 {
-  { -0.3f, 0.1f, -0.3f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF}, 
-  {  0.3f, 0.0f, -0.3f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF},
-  {  0.3f, 0.1f,  0.3f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF},
-
-  { -0.3f, 0.0f,  0.3f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF},
-  { -0.3f, 0.1f, -0.3f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF},
-  {  0.3f, 0.0f,  0.3f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF}
+  {-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f},
+  {0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f},
+  {0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f},
+  {0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f},
+  {-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f},
+  {-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f},
+  {-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f},
+  {0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f},
+  {0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f},
+  {0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f},
+  {-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f},
+  {-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f},
+  {-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f},
+  {-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f},
+  {-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f},
+  {-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f},
+  {-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f},
+  {-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f},
+  {0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f},
+  {0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f},
+  {0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f},
+  {0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f},
+  {0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f},
+  {0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f},
+  {-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f},
+  {0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f},
+  {0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f},
+  {0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f},
+  {-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f},
+  {-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f},
+  {-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f},
+  {0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f},
+  {0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f},
+  {0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f},
+  {-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f},
+  {-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f}
 };
 
 Hand::Hand(const Type& type, Volume& volume)
@@ -27,6 +56,14 @@ Hand::~Hand()
 {
 }
 
+glm::mat4 placeCubeBetween(glm::vec3 a, glm::vec3 b, float thickness)
+{
+  glm::vec3 delta = b - a;
+  float length = glm::length(delta);
+  return glm::translate((a + b) * 0.5f)
+    * glm::mat4_cast(glm::rotation(glm::vec3(0.0f, 1.0f, 0.0f), delta / length))
+    * glm::scale(glm::vec3(thickness, length, thickness));
+}
 
 void Hand::create()
 {
@@ -35,15 +72,13 @@ void Hand::create()
 
   glGenBuffers(1, &vbo);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(PLANE_MESH), PLANE_MESH, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(CUBE_MESH), CUBE_MESH, GL_STATIC_DRAW);
 
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
-  glEnableVertexAttribArray(2);
   
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 32, (void*)0);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 32, (void*)12);
-  glVertexAttribPointer(2, 4, GL_UNSIGNED_SHORT, GL_FALSE, 32, (void*)24);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 24, (void*)0);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 24, (void*)12);
 }
 
 
@@ -52,12 +87,14 @@ bool Hand::render(Shader& shader, const glm::mat4& headMatrix)
   glm::vec4 colour;
   bool update = false;
 
-  glm::vec3 p = (wrist + glm::vec3(0, 0, 0)) * 64.0f / 3.0f;
+  // Points [i][j][k] (i is the finger index, j is the bone index (4 is the tip), k is the front/back
+  glm::vec3 indexTip(headMatrix * glm::vec4(points[1][4][0], 1.0f)); indexTip.y *= -1.0f;
+  glm::vec3 p = (indexTip + glm::vec3(0, 0, 0)) * 64.0f / 3.0f;
 
   switch (type) {
     case Type::LEFT: {
       colour = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
-      if (volume.FillCube(p.x, p.y, p.z, 5, 1, 0xff, 0xff, 0xff, 0xff)) {
+      if (volume.FillCube(p.x, p.y, p.z, 5, 1)) {
         update = true;
       }
       break;
@@ -66,14 +103,29 @@ bool Hand::render(Shader& shader, const glm::mat4& headMatrix)
       colour = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
       break;
     }
+    default:
+      break;
   }
 
-  glm::vec4 absHand = headMatrix * glm::vec4(wrist, 1.0f);
-
   glBindVertexArray(vao);
-  shader.uniform("u_model", glm::translate(glm::vec3(absHand.x, -absHand.y, absHand.z)));
-  shader.uniform("u_colour", colour);
-  glDrawArrays(GL_TRIANGLES, 0, 6);
+  
+  // Draw cuboids for each bone
+  for (int i = 0; i < 5; i++)
+  {
+    // Draw joints
+    shader.uniform("u_colour", colour);
+    for (int j = 0; j < 4; j++)
+    {
+      glm::vec3 a(headMatrix * glm::vec4(points[i][j][0], 1.0f)); a.y *= -1.0f;
+      glm::vec3 b(headMatrix * glm::vec4(points[i][j][1], 1.0f)); b.y *= -1.0f;
+      shader.uniform("u_model", placeCubeBetween(a, b, 0.1f));
+      glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
+  }
+  
+  shader.uniform("u_colour", glm::vec4(0.75f, 0.0f, 0.0f, 1.0f));
+  shader.uniform("u_model", glm::translate(indexTip) * glm::scale(glm::vec3(0.1f)));
+  glDrawArrays(GL_TRIANGLES, 0, 36);
 
   return update;
 }
@@ -88,8 +140,26 @@ void Hand::destroy()
 
 bool Hand::update(const Leap::Hand& hand)
 {
-  glm::vec3 newWrist(-hand.wristPosition().x, hand.wristPosition().z, -hand.wristPosition().y);
-  wrist = newWrist / 100.0f;
+  // For each finger
+  Leap::FingerList fingers = hand.fingers();
+  for (auto f = fingers.begin(); f != fingers.end(); f++)
+  {
+    int i = (int)(*f).type();
+    
+    // For each bone
+    for (int j = 0; j < 4; j++)
+    {
+      auto bone = (*f).bone((Leap::Bone::Type)j);
+      auto p = bone.prevJoint();
+      auto p2 = bone.nextJoint();
+      points[i][j][0] = glm::vec3(-p.x, p.z, -p.y) / 200.0f;
+      points[i][j][1] = glm::vec3(-p2.x, p2.z, -p2.y) / 200.0f;
+    }
+
+    auto tip = (*f).tipPosition();
+    points[i][4][0] = glm::vec3(-tip.x, tip.z, -tip.y) / 200.0f;
+  }
+  wrist = glm::vec3(-hand.wristPosition().x, hand.wristPosition().z, -hand.wristPosition().y) / 200.0f;
   tracked = true;
   return true;
 }

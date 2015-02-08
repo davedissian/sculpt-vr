@@ -312,12 +312,6 @@ Interpolate(float x1, float y1, float z1, Point& p1,
   out.x = ((x1 + d * (x2 - x1)) * 3) / 64;
   out.y = ((y1 + d * (y2 - y1)) * 3) / 64;
   out.z = ((z1 + d * (z2 - z1)) * 3) / 64;
-
-  /* Interpolate rgba. */
-  out.r = (uint16_t)(p1.r + d * (p2.r - p1.r)) << 8;
-  out.g = (uint16_t)(p1.g + d * (p2.g - p1.g)) << 8;
-  out.b = (uint16_t)(p1.b + d * (p2.b - p1.b)) << 8;
-  out.a = (uint16_t)(p1.a + d * (p2.a - p1.a)) << 8;
 }
 
 static void
@@ -561,8 +555,7 @@ Volume::GridToTris(std::vector<Triangle>& out)
 }
 
 bool 
-Volume::FillCube(size_t x, size_t y, size_t z, size_t edge_len,
-                 float isoValue, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+Volume::FillCube(size_t x, size_t y, size_t z, size_t edge_len, float isoValue)
 {
   bool changes = false;
   for (size_t i = x; i < std::min(x + edge_len, size - 1); ++i)
@@ -574,10 +567,6 @@ Volume::FillCube(size_t x, size_t y, size_t z, size_t edge_len,
         float iso = grid[i * X_OFFSET + j * Y_OFFSET + k].isoValue;
         changes = changes || (iso != isoValue);
         grid[i * X_OFFSET + j * Y_OFFSET + k].isoValue = isoValue;
-        grid[i * X_OFFSET + j * Y_OFFSET + k].r = r;
-        grid[i * X_OFFSET + j * Y_OFFSET + k].g = g;
-        grid[i * X_OFFSET + j * Y_OFFSET + k].b = b;
-        grid[i * X_OFFSET + j * Y_OFFSET + k].a = a;
       }
     }
   }
@@ -585,8 +574,7 @@ Volume::FillCube(size_t x, size_t y, size_t z, size_t edge_len,
 }
 
 bool
-Volume::FillSphere(size_t x, size_t y, size_t z, size_t radius,
-                   float isoValue, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+Volume::FillSphere(size_t x, size_t y, size_t z, size_t radius, float isoValue)
 {
   bool changes = false;
   for (size_t i = ((radius > x) ? 0 : (x - radius)); 
@@ -606,10 +594,6 @@ Volume::FillSphere(size_t x, size_t y, size_t z, size_t radius,
           float iso = grid[i * X_OFFSET + j * Y_OFFSET + k].isoValue;
           changes = changes || (iso != isoValue);
           grid[i * X_OFFSET + j * Y_OFFSET + k].isoValue = isoValue;
-          grid[i * X_OFFSET + j * Y_OFFSET + k].r = r;
-          grid[i * X_OFFSET + j * Y_OFFSET + k].g = g;
-          grid[i * X_OFFSET + j * Y_OFFSET + k].b = b;
-          grid[i * X_OFFSET + j * Y_OFFSET + k].a = a;          
         }
       }
     }
@@ -618,5 +602,8 @@ Volume::FillSphere(size_t x, size_t y, size_t z, size_t radius,
 }
 
 
+void
+Volume::ExportOBJ(const std::string& file, const std::vector<Triangle>& trgs)
+{
 
-
+}

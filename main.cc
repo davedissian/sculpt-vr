@@ -237,12 +237,12 @@ void SculptVR::SDLCreateWindow(int width, int height, SDL_Window** window, SDL_G
 
 static const Vertex temp[] =
 {
-  { -1.0f, 2.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF}, 
-  {  1.0f, 2.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF},
-  {  1.0f, 2.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF},
-  { -1.0f, 2.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF},
-  { -1.0f, 2.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF},
-  {  1.0f, 2.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF}
+  { -1.0f, 2.0f, -1.0f, 0.0f, 1.0f, 0.0f}, 
+  {  1.0f, 2.0f, -1.0f, 0.0f, 1.0f, 0.0f},
+  {  1.0f, 2.0f,  1.0f, 0.0f, 1.0f, 0.0f},
+  { -1.0f, 2.0f,  1.0f, 0.0f, 1.0f, 0.0f},
+  { -1.0f, 2.0f, -1.0f, 0.0f, 1.0f, 0.0f},
+  {  1.0f, 2.0f,  1.0f, 0.0f, 1.0f, 0.0f}
 };
 
 
@@ -280,12 +280,11 @@ void SculptVR::RebuildModel()
 
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
-  glEnableVertexAttribArray(2);
   
   triangles.clear();
-  //volume.FillCube(10, 10, 10, 10, 1, 0xff, 0xff, 0xff, 0xff);
-  volume.FillSphere(15, 15, 15, 15, 1, 0xff, 0xff, 0xff, 0xff);
-  //volume.FillSphere(50, 50, 50, 50, 1, 0xff, 0xff, 0xff, 0xff);
+  //volume.FillCube(10, 10, 10, 10, 1);
+  volume.FillSphere(15, 15, 15, 15, 1);
+  //volume.FillSphere(50, 50, 50, 50, 1);
   volume.GridToTris(triangles);
 
   glBufferData(
@@ -293,9 +292,8 @@ void SculptVR::RebuildModel()
       triangles.size() * sizeof(Triangle), 
       &triangles[0], 
       GL_DYNAMIC_DRAW);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 32, (void*)0);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 32, (void*)12);
-  glVertexAttribPointer(2, 4, GL_UNSIGNED_SHORT, GL_TRUE, 32, (void*)24);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 24, (void*)0);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 24, (void*)12);
 
   std::cout << "Size: " << triangles.size() << std::endl;
 
@@ -305,12 +303,6 @@ void SculptVR::RebuildModel()
 
 void SculptVR::GLDrawScene(const glm::mat4& view, const glm::mat4& proj)
 {
-  // Render the ground plane.
-  shPlane.bind();
-  shPlane.uniform("u_proj", proj);
-  shPlane.uniform("u_view", view);
-  msGround.render(shPlane);
-
   // Get head transform
   auto state = ovrHmd_GetTrackingState(hmd, ovr_GetTimeInSeconds());
   glm::mat4 headMatrix = glm::mat4_cast(convQuat(state.HeadPose.ThePose.Orientation));
@@ -323,6 +315,7 @@ void SculptVR::GLDrawScene(const glm::mat4& view, const glm::mat4& proj)
   if (leftHand.render(shHand, headMatrix) || 
       rightHand.render(shHand, headMatrix)) 
   {
+    triangles.clear();
     volume.GridToTris(triangles);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -340,6 +333,15 @@ void SculptVR::GLDrawScene(const glm::mat4& view, const glm::mat4& proj)
   shModel.uniform("u_model", glm::mat4(1.0f));
   glBindVertexArray(vao);
   glDrawArrays(GL_TRIANGLES, 0, triangles.size() * 3);
+  
+  // Render the ground plane.
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  shPlane.bind();
+  shPlane.uniform("u_proj", proj);
+  shPlane.uniform("u_view", view);
+  msGround.render(shPlane);
+  glDisable(GL_BLEND);
 }
 
 void printMat(const float* f)
