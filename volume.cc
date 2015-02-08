@@ -564,17 +564,46 @@ void
 Volume::FillCube(size_t x, size_t y, size_t z, size_t edge_len,
                  float isoValue, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
-  for (size_t i = x; i < (std::min(x + edge_len, size - 1)); ++i)
+  for (size_t i = x; i < std::min(x + edge_len, size - 1); ++i)
   {
-    for (size_t j = y; j < (std::min(y + edge_len, size - 1)); ++j)
+    for (size_t j = y; j < std::min(y + edge_len, size - 1); ++j)
     {
-      for (size_t k = z; k < (std::min(z + edge_len, size - 1)); ++k)
+      for (size_t k = z; k < std::min(z + edge_len, size - 1); ++k)
       {
         grid[i * X_OFFSET + j * Y_OFFSET + k].isoValue = isoValue;
         grid[i * X_OFFSET + j * Y_OFFSET + k].r = r;
         grid[i * X_OFFSET + j * Y_OFFSET + k].g = g;
         grid[i * X_OFFSET + j * Y_OFFSET + k].b = b;
         grid[i * X_OFFSET + j * Y_OFFSET + k].a = a;
+      }
+    }
+  }
+}
+
+void
+Volume::FillSphere(size_t x, size_t y, size_t z, size_t radius,
+                   float isoValue, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+{
+  for (size_t i = ((radius > x) ? 0 : (x - radius)); 
+      i < std::min(x + radius, size - 1); ++i)
+  {
+    for (size_t j = ((radius > y) ? 0 : (y - radius)); 
+        j < std::min(y + radius, size - 1); ++j)
+    {
+      for (size_t k = ((radius > k) ? 0 : (z - radius)); 
+          k < std::min(z + radius, size - 1); ++ k)
+      {
+        /* Check if (i, j, k) is within the sphere. */
+        if (sqrt((x - i) * (x - i) + 
+                 (y - j) * (y - j) + 
+                 (z - k) * (z - k)) <= radius)
+        {
+          grid[i * X_OFFSET + j * Y_OFFSET + k].isoValue = isoValue;
+          grid[i * X_OFFSET + j * Y_OFFSET + k].r = r;
+          grid[i * X_OFFSET + j * Y_OFFSET + k].g = g;
+          grid[i * X_OFFSET + j * Y_OFFSET + k].b = b;
+          grid[i * X_OFFSET + j * Y_OFFSET + k].a = a;          
+        }
       }
     }
   }

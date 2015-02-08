@@ -51,9 +51,36 @@ public:
   /**
    * Fills in a cube with edge of length edge_len and the bottom left corner 
    * at (x, y, z) with the given isoValue and rbga data.
+   *
+   * @param x X coordinate of the bottom left corner
+   * @param y y coordinate of the bottom left corner
+   * @param z z coordinate of the bottom left corner
+   * @param edge_len Edge length
+   * @param isoValue Iso value
+   * @param r Red sample
+   * @param g Green sample
+   * @param b Blue sample
+   * @param a Alpha chanel      
    */
   void FillCube(size_t x, size_t y, size_t z, size_t edge_len,
                 float isoValue, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+
+  /**
+   * Fills in a cube centered at (x, y, z) with 
+   * the given isoValue and rbga data.
+   *
+   * @param x X coordinate of the bottom left corner
+   * @param y y coordinate of the bottom left corner
+   * @param z z coordinate of the bottom left corner
+   * @param radius Radius
+   * @param isoValue Iso value
+   * @param r Red sample
+   * @param g Green sample
+   * @param b Blue sample
+   * @param a Alpha chanel      
+   */
+  void FillSphere(size_t x, size_t y, size_t z, size_t radius,
+                  float isoValue, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 
 private:
   void VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out);

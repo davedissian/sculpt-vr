@@ -8,6 +8,7 @@
 #include <cstring>
 #include <cstddef>
 #include <cstdint>
+#include <cmath>
 #include <vector>
 #include <set>
 #include <unordered_map>
