@@ -268,7 +268,7 @@ void SculptVR::RebuildModel()
       GL_DYNAMIC_DRAW);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 32, (void*)0);
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 32, (void*)12);
-  glVertexAttribPointer(2, 4, GL_UNSIGNED_SHORT, GL_FALSE, 32, (void*)24);
+  glVertexAttribPointer(2, 4, GL_UNSIGNED_SHORT, GL_TRUE, 32, (void*)24);
 
   std::cout << "Size: " << triangles.size() << std::endl;
 
@@ -295,7 +295,7 @@ void SculptVR::GLDrawScene(const glm::mat4& view, const glm::mat4& proj)
   shModel.bind();
   shModel.uniform("u_proj", proj);
   shModel.uniform("u_view", view);
-  shModel.uniform("u_model", glm::translate(glm::vec3(0.0f, -3.0f, 0.0f)));
+  shModel.uniform("u_model", glm::mat4(1.0f));
   glBindVertexArray(vao);
   glDrawArrays(GL_TRIANGLES, 0, triangles.size() * 3);
 }

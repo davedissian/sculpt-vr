@@ -309,15 +309,15 @@ Interpolate(float x1, float y1, float z1, Point& p1,
   float d = (ISO_LIMIT - p1.isoValue) / (p2.isoValue - p1.isoValue);
   
   /* Interpolate x, y, z */
-  out.x = ((x1 + d * (x2 - x1)) - 3) / 128 - 1.5;
-  out.y = ((y1 + d * (y2 - y1)) - 3) / 128 - 1.5;
-  out.z = ((z1 + d * (z2 - z1)) - 3) / 128 - 1.5;
+  out.x = ((x1 + d * (x2 - x1)) * 3) / 64 - 3.0;
+  out.y = ((y1 + d * (y2 - y1)) * 3) / 64;
+  out.z = ((z1 + d * (z2 - z1)) * 3) / 64 - 3.0;
 
   /* Interpolate rgba. */
-  out.r = p1.r + d * (p2.r - p1.r);
-  out.g = p1.g + d * (p2.g - p1.g);
-  out.b = p1.b + d * (p2.b - p1.b);
-  out.a = p1.a + d * (p2.a - p1.a);
+  out.r = (uint16_t)(p1.r + d * (p2.r - p1.r)) << 8;
+  out.g = (uint16_t)(p1.g + d * (p2.g - p1.g)) << 8;
+  out.b = (uint16_t)(p1.b + d * (p2.b - p1.b)) << 8;
+  out.a = (uint16_t)(p1.a + d * (p2.a - p1.a)) << 8;
 }
 
 static void
