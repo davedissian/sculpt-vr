@@ -288,7 +288,7 @@ void SculptVR::GLInit()
 void SculptVR::CreateVolume()
 {
   volume.ClearVolume();
-  volume.FillSphere(15, 15, 15, 15, 1);
+  volume.FillCube(2, 2, 2, 26, 1);
   triangles.clear();
   volume.GridToTris(triangles);
 }
