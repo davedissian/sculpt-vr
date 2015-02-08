@@ -29,6 +29,7 @@ public:
 
 public:
 	bool tracked = false;
+	glm::vec3 points[5][4][2];
 	glm::vec3 wrist;
 	Type type;
 };

@@ -304,12 +304,6 @@ void SculptVR::RebuildModel()
 
 void SculptVR::GLDrawScene(const glm::mat4& view, const glm::mat4& proj)
 {
-  // Render the ground plane.
-  shPlane.bind();
-  shPlane.uniform("u_proj", proj);
-  shPlane.uniform("u_view", view);
-  msGround.render(shPlane);
-
   // Get head transform
   auto state = ovrHmd_GetTrackingState(hmd, ovr_GetTimeInSeconds());
   glm::mat4 headMatrix = glm::mat4_cast(convQuat(state.HeadPose.ThePose.Orientation));
@@ -328,6 +322,15 @@ void SculptVR::GLDrawScene(const glm::mat4& view, const glm::mat4& proj)
   shModel.uniform("u_model", glm::mat4(1.0f));
   glBindVertexArray(vao);
   glDrawArrays(GL_TRIANGLES, 0, triangles.size() * 3);
+  
+  // Render the ground plane.
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  shPlane.bind();
+  shPlane.uniform("u_proj", proj);
+  shPlane.uniform("u_view", view);
+  msGround.render(shPlane);
+  glDisable(GL_BLEND);
 }
 
 void printMat(const float* f)
