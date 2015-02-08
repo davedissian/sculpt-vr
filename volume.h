@@ -73,6 +73,10 @@ public:
    */
   void ClearVolume(void);
 
+  void SetPosition(const glm::vec3& p) { position = p; }
+  glm::vec3 GetPosition() const { return position; }
+  glm::vec3 HalfSize() const { return glm::vec3(0.75f); }
+
 private:
   void VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out);
 
@@ -85,6 +89,8 @@ private:
   /* Coordinate offsets. */
   const uint32_t X_OFFSET;
   const uint32_t Y_OFFSET;
+
+  glm::vec3 position;
 
 };
 

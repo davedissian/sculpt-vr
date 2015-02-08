@@ -50,20 +50,24 @@ private:
   void RotateModel();
   void RebuildModel();
   glm::vec3 GetArcballVector(const glm::ivec2& pos);
+  void CreateVolume(void);
   
-  void DismissWarning();
+  // Leap Motion
   void onConnect(const Leap::Controller& c) {
     std::cout << "Connected to leap motion controller." << std::endl;
   }
-  void CreateVolume(void);
 
   void onFrame(const Leap::Controller& c) {
     leftHand.tracked = false;
     rightHand.tracked = false;
-    std::cout << c.frame().hands().count() << std::endl;
     for (const auto& hand : c.frame().hands()) {
-      if (leftHand.tracked || !leftHand.update(hand)) {
+      if (hand.isLeft()) {
+        leftHand.update(hand);
+        continue;
+      }
+      if (hand.isRight()) {
         rightHand.update(hand);
+        continue;
       }
     }
   }
@@ -77,8 +81,8 @@ private:
   Shader shModel;
   Shader shHand;
   Plane  msGround;
-  int vpWidth = 640;
-  int vpHeight = 480;
+  int vpWidth = 1024;
+  int vpHeight = 768;
   bool mouseDown;
   glm::ivec2 mouseLast;
   glm::ivec2 mousePos;
@@ -91,6 +95,8 @@ private:
   GLuint vbo;
   /// VAO for the Really big VBO.
   GLuint vao;
+
+  glm::vec3 headOrigin;
 
   // VR Stuff
   ovrHmd hmd;
@@ -118,12 +124,14 @@ SculptVR::SculptVR()
   , msGround(20.0f, 20.0f)
   , mouseDown(false)
   , viewQuat(1, 0, 0, 0)
-  , cameraMat(glm::lookAt(
-      glm::vec3(7.0f, 7.0f, 7.0f),
-      glm::vec3(0.0f, 0.0f, 0.0f),
-      glm::vec3(0.0f, 1.0f, 0.0f)))
+  , cameraMat()
+  , headOrigin(0.0f, 1.6f, 2.0f)
 {
   triangles.resize(2000);
+  cameraMat = glm::lookAt(
+    glm::vec3(2.0f, 2.0f, 2.0f),
+    glm::vec3(0.0f, headOrigin.y, 0.0f),
+    glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
 void SculptVR::Init()
@@ -162,12 +170,16 @@ void SculptVR::Init()
   std::cout << "OpenGL version supported " << version << std::endl;
 
   HMDConf();
-  // Attach a LeapMotion controller.
-  int flags = Leap::Controller::PolicyFlag::POLICY_IMAGES | Leap::Controller::PolicyFlag::POLICY_OPTIMIZE_HMD;
+
+  // Attach a LeapMotion controller
+  int flags = Leap::Controller::PolicyFlag::POLICY_IMAGES
+    | Leap::Controller::PolicyFlag::POLICY_OPTIMIZE_HMD;
   controller.setPolicyFlags((Leap::Controller::PolicyFlag)flags);
   controller.addListener(*this);
 
   GLInit();
+
+  volume.SetPosition(glm::vec3(0.0f, headOrigin.y, 0.0f));
 }
 
 void SculptVR::HMDInit()
@@ -305,12 +317,12 @@ void SculptVR::RebuildModel()
   glBindVertexArray(0);
 }
 
-
 void SculptVR::GLDrawScene(const glm::mat4& view, const glm::mat4& proj)
 {
   // Get head transform
   auto state = ovrHmd_GetTrackingState(hmd, ovr_GetTimeInSeconds());
-  glm::mat4 headMatrix = glm::mat4_cast(convQuat(state.HeadPose.ThePose.Orientation));
+  glm::mat4 headMatrix = glm::translate(headOrigin + convVec(state.HeadPose.ThePose.Position))
+    * glm::mat4_cast(convQuat(state.HeadPose.ThePose.Orientation));
 
   // Render the hands.
   shHand.bind();
@@ -335,7 +347,7 @@ void SculptVR::GLDrawScene(const glm::mat4& view, const glm::mat4& proj)
   shModel.bind();
   shModel.uniform("u_proj", proj);
   shModel.uniform("u_view", view);
-  shModel.uniform("u_model", glm::mat4(1.0f));
+  shModel.uniform("u_model", glm::translate(volume.GetPosition()));
   glBindVertexArray(vao);
   glDrawArrays(GL_TRIANGLES, 0, triangles.size() * 3);
   
@@ -385,7 +397,7 @@ void SculptVR::GLRender()
     // Grab oculus position and rotation
     auto rot = convQuat(pose[eye].Orientation);
     auto offset = convVec(pose[eye].Position);
-    auto camera = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.0f, 0.0f) + offset);
+    auto camera = glm::translate(glm::mat4(1.0f), headOrigin + offset);
     camera = camera * glm::mat4_cast(rot);
 
     GLDrawScene(glm::inverse(camera), proj);
@@ -426,7 +438,6 @@ void SculptVR::Run()
           break;
         }
         case SDL_KEYDOWN: {
-          DismissWarning();
           switch (evt.key.keysym.sym) {
             case SDLK_r: {
               CreateVolume();
@@ -500,7 +511,7 @@ void SculptVR::RotateModel()
   float angle = std::acos(std::min(1.0f, glm::dot(va, vb)));
 
   glm::vec3 axis = invCam * glm::cross(va, vb);
-  if (glm::length(axis) >= 0.001f) {
+  if (glm::length(axis) > std::numeric_limits<float>::epsilon()) {
     axis = glm::normalize(axis);
   }
 
@@ -517,16 +528,6 @@ void SculptVR::Destroy()
 #ifndef DISABLE_VR
   SDL_DestroyWindow(window[1]);
 #endif
-}
-
-void SculptVR::DismissWarning()
-{
-    ovrHSWDisplayState state;
-
-    ovrHmd_GetHSWDisplayState(hmd, &state);
-
-    if (state.Displayed)
-        ovrHmd_DismissHSWDisplay(hmd);
 }
 
 int main()
