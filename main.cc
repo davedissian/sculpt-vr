@@ -121,7 +121,9 @@ void SculptVR::Init()
   SDL_GL_SetSwapInterval(1);
   
   // Creat the window
+#ifndef DISABLE_VR
   SDLCreateWindow(hmd->Resolution.w, hmd->Resolution.h, &window[1], &context[1], 1);
+#endif
   SDLCreateWindow(vpWidth, vpHeight, &window[0], &context[0], 0);
 
   // Set up GLEW
@@ -307,6 +309,16 @@ void printMat(const float* f)
   std::cout << std::endl;
 }
 
+glm::vec3 convVec(const ovrVector3f& v)
+{
+  return glm::vec3(v.x, v.y, v.z);
+}
+
+glm::quat convQuat(const ovrQuatf& q)
+{
+  return glm::quat(q.w, q.x, q.y, q.z);
+}
+
 glm::mat4 convMat(const ovrMatrix4f& m)
 {
   return glm::transpose(glm::mat4(m.M[0][0], m.M[0][1], m.M[0][2], m.M[0][3],
@@ -318,13 +330,16 @@ glm::mat4 convMat(const ovrMatrix4f& m)
 void SculptVR::GLRender()
 {
   // Render non-VR stuff
+#ifndef DISABLE_VR
   SDL_GL_MakeCurrent(window[0], context[0]);
+#endif
   glEnable(GL_DEPTH_TEST);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   GLDrawScene(cameraMat * glm::mat4_cast(viewQuat), 
       glm::perspective(45.0f, (float)vpWidth / vpHeight, 0.1f, 100.0f));
   SDL_GL_SwapWindow(window[0]);
 
+#ifndef DISABLE_VR
   // Render VR stuff
   SDL_GL_MakeCurrent(window[1], context[1]);
   glEnable(GL_DEPTH_TEST);
@@ -337,10 +352,18 @@ void SculptVR::GLRender()
     buffer[eye]->bind();
     auto proj = convMat(ovrMatrix4f_Projection(erd[eye].Fov, 0.1f, 100.0f, 1));
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    GLDrawScene(cameraMat, proj);
+
+    // Grab oculus position and rotation
+    auto rot = convQuat(pose[eye].Orientation);
+    auto offset = convVec(pose[eye].Position);
+    auto camera = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.0f, 0.0f) + offset);
+    camera = camera * glm::mat4_cast(rot);
+
+    GLDrawScene(glm::inverse(camera), proj);
   }
   ovrHmd_EndFrame(hmd, pose, tex);
   glUseProgram(0);
+#endif
 
   GLuint err = glGetError();
   if (err != 0) {
@@ -449,7 +472,9 @@ void SculptVR::Destroy()
   controller.removeListener(*this);
   GLCleanup();
   SDL_DestroyWindow(window[0]);
+#ifndef DISABLE_VR
   SDL_DestroyWindow(window[1]);
+#endif
 }
 
 void SculptVR::DismissWarning()
