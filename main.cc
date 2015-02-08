@@ -25,6 +25,7 @@ private:
   void GLRender();
   void GLCleanup();
   void RotateModel();
+  void RebuildModel();
   glm::vec3 GetArcballVector(const glm::ivec2& pos);
 
 private:
@@ -44,6 +45,11 @@ private:
   glm::quat viewQuat;
   glm::mat4 cameraMat;
   Volume volume;
+  /// Really big VBO.
+  GLuint vbo;
+  /// VAO for the Really big VBO.
+  GLuint vao;
+  std::vector<Triangle> triangles;
 };
 
 
@@ -53,15 +59,16 @@ SculptVR::SculptVR()
   , running(false)
   , shModel("model")
   , shPlane("plane")
-  , msGround(2.0f, 2.0f)
+  , msGround(20.0f, 20.0f)
   , mouseDown(false)
   , viewQuat(0, 0, 0, 1)
   , cameraMat(glm::lookAt(
       glm::vec3(7.0f, 7.0f, 7.0f),
       glm::vec3(0.0f, 0.0f, 0.0f),
       glm::vec3(0.0f, 1.0f, 0.0f)))
-  , volume(512)
+  , volume(128)
 {
+  triangles.resize(2000);
 }
 
 
@@ -107,8 +114,20 @@ void SculptVR::Init()
 }
 
 
+static const Vertex temp[] =
+{
+  { -1.0f, 2.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF}, 
+  {  1.0f, 2.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF},
+  {  1.0f, 2.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF},
+  { -1.0f, 2.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF},
+  { -1.0f, 2.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF},
+  {  1.0f, 2.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF}
+};
+
+
 void SculptVR::GLInit()
 {
+
   shPlane.compile("shader/plane.fs", Shader::Type::FRAG);
   shPlane.compile("shader/plane.vs", Shader::Type::VERT);
   shPlane.link();
@@ -118,24 +137,66 @@ void SculptVR::GLInit()
   shModel.link();
 
   msGround.create();
+  
+  glGenVertexArrays(1, &vao);
+  glGenBuffers(1, &vbo);
+
+  RebuildModel();
+}
+
+void SculptVR::RebuildModel()
+{
+  // Set up the big VBO.
+  glBindVertexArray(vao);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+  glEnableVertexAttribArray(0);
+  glEnableVertexAttribArray(1);
+  glEnableVertexAttribArray(2);
+  
+  triangles.clear();
+  volume.FillCube(10, 10, 10, 10, 1, 0xff, 0xff, 0xff, 0xff);
+  volume.GridToTris(triangles);
+
+  glBufferData(
+      GL_ARRAY_BUFFER, 
+      triangles.size() * sizeof(Triangle), 
+      &triangles[0], 
+      GL_DYNAMIC_DRAW);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 32, (void*)0);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 32, (void*)12);
+  glVertexAttribPointer(2, 4, GL_UNSIGNED_SHORT, GL_FALSE, 32, (void*)24);
+
+  std::cout << "Size: " << triangles.size() << std::endl;
+
+  glBindVertexArray(0);
 }
 
 
 void SculptVR::GLRender()
 {
+  glm::mat4 u_proj = glm::perspective(45.0f, 640.0f / 480.0f, 0.1f, 100.0f);
+  glm::mat4 u_view = cameraMat * glm::mat4_cast(viewQuat);
+
   glEnable(GL_DEPTH_TEST);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  
+    
+  // Render the ground plane.
   shPlane.bind();
-  shPlane.uniform("u_proj", glm::perspective(
-      45.0f, 640.0f / 480.0f, 0.1f, 100.0f));
-  shPlane.uniform("u_view", cameraMat);
-  shPlane.uniform("u_model", glm::mat4_cast(viewQuat));
+  shPlane.uniform("u_proj", u_proj);
+  shPlane.uniform("u_view", u_view);
   msGround.render(shPlane);
 
+  // Render the model.
+  shModel.bind();
+  shModel.uniform("u_proj", u_proj);
+  shModel.uniform("u_view", u_view);
+  shModel.uniform("u_model", glm::translate(glm::vec3(0.0f, -3.0f, 0.0f)));
+  glBindVertexArray(vao);
+  glDrawArrays(GL_TRIANGLES, 0, triangles.size() * 3);
+
   GLuint err = glGetError();
-  if (err != 0)
-  {
+  if (err != 0) {
     std::runtime_error(std::to_string(err));
   }
 }

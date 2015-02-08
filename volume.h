@@ -21,14 +21,18 @@ public:
 
   static_assert(sizeof(Point) == 8, "Invalid point size.");
 
-  Volume(size_t size) {
+  Volume(size_t size) 
+    : size(size)
+    , X_OFFSET(size * size)
+    , Y_OFFSET(size)
+  {
     grid.resize(size * size * size);
     memset(&grid[0], 0, sizeof(Point) * size * size * size);
 
     // Fill with dummy data
     for (size_t i = 0; i < (size * size * size); ++i)
     {
-      grid[i].isoValue = 1;
+      grid[i].isoValue = 0;
       grid[i].r = 0xff;
       grid[i].g = 0xff;
       grid[i].b = 0xff;
@@ -42,13 +46,28 @@ public:
    * @param size Grid dimension
    * @param out List where the triangles should be inserted
    */
-  void GridToTris(size_t size, std::vector<Triangle>& out);
+  void GridToTris(std::vector<Triangle>& out);
+
+  /**
+   * Fills in a cube with edge of length edge_len and the bottom left corner 
+   * at (x, y, z) with the given isoValue and rbga data.
+   */
+  void FillCube(size_t x, size_t y, size_t z, size_t edge_len,
+                float isoValue, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 
 private:
   void VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out);
 
-  // 3D point grid.
+  /* 3D point grid. */
   std::vector<Point> grid;
+  
+  /* grid size. */
+  size_t size;
+
+  /* Coordinate offsets. */
+  const uint32_t X_OFFSET;
+  const uint32_t Y_OFFSET;
+
 };
 
 

@@ -18,7 +18,10 @@ struct Triangle {
     , v1(v1)
     , v2(v2)
   {
-  
+  }
+
+  Triangle()
+  {
   }
 
   Vertex v0, v1, v2;
