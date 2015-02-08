@@ -5,6 +5,7 @@
 #ifndef __HAND_H__
 #define __HAND_H__
 
+class Volume;
 
 class Hand
 {
@@ -15,11 +16,11 @@ public:
 		CHERNOBYL
 	};
 public:
-	Hand(const Type& type);
+	Hand(const Type& type, Volume& volume);
 	~Hand();
 
   void create();
-  void render(Shader& shader, glm::mat4 headMatrix);
+  bool render(Shader& shader, const glm::mat4& headMatrix);
   void destroy();
   bool update(const Leap::Hand& hand);
 
@@ -29,9 +30,11 @@ public:
 
 public:
 	bool tracked = false;
-	glm::vec3 points[5][4][2];
+	glm::vec3 points[5][5][2];
 	glm::vec3 wrist;
 	Type type;
+private:
+  Volume& volume;
 };
 
 

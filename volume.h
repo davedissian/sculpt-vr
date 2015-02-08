@@ -60,9 +60,10 @@ public:
    * @param r Red sample
    * @param g Green sample
    * @param b Blue sample
-   * @param a Alpha chanel      
+   * @param a Alpha chanel
+   * @return true if the cube changed, false otherwise.              
    */
-  void FillCube(size_t x, size_t y, size_t z, size_t edge_len,
+  bool FillCube(size_t x, size_t y, size_t z, size_t edge_len,
                 float isoValue, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 
   /**
@@ -77,9 +78,10 @@ public:
    * @param r Red sample
    * @param g Green sample
    * @param b Blue sample
-   * @param a Alpha chanel      
+   * @param a Alpha chanel
+   * @return true if the sphere changed, false otherwise.     
    */
-  void FillSphere(size_t x, size_t y, size_t z, size_t radius,
+  bool FillSphere(size_t x, size_t y, size_t z, size_t radius,
                   float isoValue, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 
 private:

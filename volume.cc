@@ -309,9 +309,9 @@ Interpolate(float x1, float y1, float z1, Point& p1,
   float d = (ISO_LIMIT - p1.isoValue) / (p2.isoValue - p1.isoValue);
   
   /* Interpolate x, y, z */
-  out.x = ((x1 + d * (x2 - x1)) * 3) / 64 - 3.0;
+  out.x = ((x1 + d * (x2 - x1)) * 3) / 64;
   out.y = ((y1 + d * (y2 - y1)) * 3) / 64;
-  out.z = ((z1 + d * (z2 - z1)) * 3) / 64 - 3.0;
+  out.z = ((z1 + d * (z2 - z1)) * 3) / 64;
 
   /* Interpolate rgba. */
   out.r = (uint16_t)(p1.r + d * (p2.r - p1.r)) << 8;
@@ -560,17 +560,20 @@ Volume::GridToTris(std::vector<Triangle>& out)
   }
 }
 
-void 
+bool 
 Volume::FillCube(size_t x, size_t y, size_t z, size_t edge_len,
                  float isoValue, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
+  bool changes = false;
   for (size_t i = x; i < std::min(x + edge_len, size - 1); ++i)
   {
     for (size_t j = y; j < std::min(y + edge_len, size - 1); ++j)
     {
       for (size_t k = z; k < std::min(z + edge_len, size - 1); ++k)
       {
-        grid[i * X_OFFSET + j * Y_OFFSET + k].isoValue = isoValue;
+        float& iso = grid[i * X_OFFSET + j * Y_OFFSET + k].isoValue;
+        changes = changes || (iso != isoValue);
+        iso = isoValue;
         grid[i * X_OFFSET + j * Y_OFFSET + k].r = r;
         grid[i * X_OFFSET + j * Y_OFFSET + k].g = g;
         grid[i * X_OFFSET + j * Y_OFFSET + k].b = b;
@@ -578,12 +581,14 @@ Volume::FillCube(size_t x, size_t y, size_t z, size_t edge_len,
       }
     }
   }
+  return changes;
 }
 
-void
+bool
 Volume::FillSphere(size_t x, size_t y, size_t z, size_t radius,
                    float isoValue, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
+  bool changes = false;
   for (size_t i = ((radius > x) ? 0 : (x - radius)); 
       i < std::min(x + radius, size - 1); ++i)
   {
@@ -598,7 +603,9 @@ Volume::FillSphere(size_t x, size_t y, size_t z, size_t radius,
                  (y - j) * (y - j) + 
                  (z - k) * (z - k)) <= radius)
         {
-          grid[i * X_OFFSET + j * Y_OFFSET + k].isoValue = isoValue;
+          float& iso = grid[i * X_OFFSET + j * Y_OFFSET + k].isoValue;
+          changes = changes || (iso != isoValue);
+          iso = isoValue;
           grid[i * X_OFFSET + j * Y_OFFSET + k].r = r;
           grid[i * X_OFFSET + j * Y_OFFSET + k].g = g;
           grid[i * X_OFFSET + j * Y_OFFSET + k].b = b;
@@ -607,6 +614,7 @@ Volume::FillSphere(size_t x, size_t y, size_t z, size_t radius,
       }
     }
   }
+  return changes;
 }
 
 

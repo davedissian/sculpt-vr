@@ -44,9 +44,10 @@ static const Vertex CUBE_MESH[] =
   {-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 0xFF, 0xFF}
 };
 
-Hand::Hand(const Type& type)
+Hand::Hand(const Type& type, Volume& volume)
   : model(1.0f)
   , type(type)
+  , volume(volume)
 {
 }
 
@@ -84,13 +85,20 @@ void Hand::create()
 }
 
 
-void Hand::render(Shader& shader, glm::mat4 headMatrix)
+bool Hand::render(Shader& shader, const glm::mat4& headMatrix)
 {
   glm::vec4 colour;
+  bool update = false;
+
+  glm::vec3 p = (wrist + glm::vec3(0, 0, 0)) * 64.0f / 3.0f;
 
   switch (type) {
     case Type::LEFT: {
       colour = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+      std::cerr << p.x << " " << p.y << " " << p.z << std::endl;
+      if (volume.FillCube(p.x, p.y, p.z, 5, 1, 0xff, 0xff, 0xff, 0xff)) {
+        update = true;
+      }
       break;
     }
     case Type::RIGHT: {
@@ -102,12 +110,12 @@ void Hand::render(Shader& shader, glm::mat4 headMatrix)
   }
 
   glBindVertexArray(vao);
-  shader.uniform("u_colour", colour);
   
   // Draw cuboids for each bone
   for (int i = 0; i < 5; i++)
   {
-    // Exclude the last point
+    // Draw joints
+    shader.uniform("u_colour", colour);
     for (int j = 0; j < 4; j++)
     {
       glm::vec3 a(headMatrix * glm::vec4(points[i][j][0], 1.0f)); a.y *= -1.0f;
@@ -115,11 +123,22 @@ void Hand::render(Shader& shader, glm::mat4 headMatrix)
       shader.uniform("u_model", placeCubeBetween(a, b, 0.1f));
       glDrawArrays(GL_TRIANGLES, 0, 36);
     }
+
+    // Draw tips
+    glm::vec3 tip(headMatrix * glm::vec4(points[i][4][0], 1.0f)); tip.y *= -1.0f;
+    shader.uniform("u_colour", glm::vec4(0.75f, 0.0f, 0.0f, 1.0f));
+    shader.uniform("u_model", glm::translate(tip) * glm::scale(glm::vec3(0.1f)));
+    glDrawArrays(GL_TRIANGLES, 0, 36);
   }
 
-  glm::vec4 absHand = headMatrix * glm::vec4(wrist, 1.0f);
-  shader.uniform("u_model", glm::translate(glm::vec3(absHand.x, -absHand.y, absHand.z)) * glm::scale(glm::vec3(0.1f)));
+  // Draw wrists
+  glm::vec3 w(headMatrix * glm::vec4(wrist, 1.0f)); w.y *= -1.0f;
+  shader.uniform("u_colour", glm::vec4(1.0f, 0.25f, 0.25f, 1.0f));
+  shader.uniform("u_model", glm::translate(w) * glm::scale(glm::vec3(0.2f)));
   glDrawArrays(GL_TRIANGLES, 0, 36);
+
+
+  return update;
 }
 
 
@@ -147,10 +166,11 @@ bool Hand::update(const Leap::Hand& hand)
       points[i][j][0] = glm::vec3(-p.x, p.z, -p.y) / 100.0f;
       points[i][j][1] = glm::vec3(-p2.x, p2.z, -p2.y) / 100.0f;
     }
+
+    auto tip = (*f).tipPosition();
+    points[i][4][0] = glm::vec3(-tip.x, tip.z, -tip.y) / 100.0f;
   }
-  wrist.x = -hand.wristPosition().x / 100.0f;
-  wrist.y = hand.wristPosition().z / 100.0f;
-  wrist.z = -hand.wristPosition().y / 100.0f;
+  wrist = glm::vec3(-hand.wristPosition().x, hand.wristPosition().z, -hand.wristPosition().y) / 100.0f;
   tracked = true;
   return true;
 }
