@@ -259,17 +259,17 @@ glm::mat4 convMat(const ovrMatrix4f& m)
 
 void SculptVR::GLRender()
 {
-  glEnable(GL_DEPTH_TEST);
-  
   // Render non-VR stuff
   SDL_GL_MakeCurrent(window[0], context[0]);
+  glEnable(GL_DEPTH_TEST);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  GLDrawScene(cameraMat * glm::mat4_cast(viewQuat), glm::perspective(2.0f, 640.0f / 480.0f, 0.1f, 100.0f));
+  GLDrawScene(cameraMat * glm::mat4_cast(viewQuat), 
+      glm::perspective(45.0f, (float)vpWidth / vpHeight, 0.1f, 100.0f));
   SDL_GL_SwapWindow(window[0]);
 
   // Render VR stuff
   SDL_GL_MakeCurrent(window[1], context[1]);
+  glEnable(GL_DEPTH_TEST);
   ovrPosef pose[2];
   ovrHmd_BeginFrame(hmd, 0);
   ovrHmd_GetEyePoses(hmd, 0, offset, pose, NULL);
@@ -279,7 +279,7 @@ void SculptVR::GLRender()
     buffer[eye]->bind();
     auto proj = convMat(ovrMatrix4f_Projection(erd[eye].Fov, 0.1f, 100.0f, 1));
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    GLDrawScene(cameraMat * glm::mat4_cast(viewQuat), proj);
+    GLDrawScene(cameraMat, proj);
   }
   ovrHmd_EndFrame(hmd, pose, tex);
   glUseProgram(0);
