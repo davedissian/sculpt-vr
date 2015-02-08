@@ -241,6 +241,9 @@ void SculptVR::GLInit()
   shHand.link();
 
   msGround.create();
+
+  leftHand.create();
+  rightHand.create();
   
   glGenVertexArrays(1, &vao);
   glGenBuffers(1, &vbo);

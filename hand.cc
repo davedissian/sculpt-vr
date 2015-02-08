@@ -52,7 +52,7 @@ void Hand::render(Shader& shader)
 
   switch (type) {
     case Type::LEFT: {
-      colour = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+      colour = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
       break;
     }
     case Type::RIGHT: {
@@ -61,10 +61,12 @@ void Hand::render(Shader& shader)
     }
   }
 
-  std::cout << wrist.x << " " << wrist.y << " " << wrist.z << std::endl;
   glBindVertexArray(vao);
   shader.uniform("u_model", glm::translate(wrist));
+  shader.uniform("u_colour", colour);
   glDrawArrays(GL_TRIANGLES, 0, 6);
+
+  std::cerr << glGetError() << std::endl;
 }
 
 
@@ -77,7 +79,7 @@ void Hand::destroy()
 
 bool Hand::update(const Leap::Hand& hand)
 {
-  glm::vec3 newWrist(hand.wristPosition().x, -hand.wristPosition().y, hand.wristPosition().z);
+  glm::vec3 newWrist(hand.wristPosition().x, hand.wristPosition().y, hand.wristPosition().z);
   wrist = newWrist / 100.0f;
   model = glm::translate(wrist);
   tracked = true;
