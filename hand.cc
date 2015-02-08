@@ -15,9 +15,10 @@ static const Vertex PLANE_MESH[] =
   {  0.3f, 0.0f,  0.3f, 0.0f, 1.0f, 0.0f, 0, 0, 0xFF, 0xFF}
 };
 
-Hand::Hand(const Type& type)
+Hand::Hand(const Type& type, Volume& volume)
   : model(1.0f)
   , type(type)
+  , volume(volume)
 {
 }
 
@@ -46,13 +47,20 @@ void Hand::create()
 }
 
 
-void Hand::render(Shader& shader)
+bool Hand::render(Shader& shader)
 {
   glm::vec4 colour;
+  bool update = false;
+
+  glm::vec3 p = (wrist + glm::vec3(0, 0, 0)) * 64.0f / 3.0f;
 
   switch (type) {
     case Type::LEFT: {
       colour = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+      std::cerr << p.x << " " << p.y << " " << p.z << std::endl;
+      if (volume.FillCube(p.x, p.y, p.z, 5, 1, 0xff, 0xff, 0xff, 0xff)) {
+        update = true;
+      }
       break;
     }
     case Type::RIGHT: {
@@ -66,7 +74,7 @@ void Hand::render(Shader& shader)
   shader.uniform("u_colour", colour);
   glDrawArrays(GL_TRIANGLES, 0, 6);
 
-  std::cerr << glGetError() << std::endl;
+  return update;
 }
 
 

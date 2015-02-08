@@ -92,8 +92,9 @@ SculptVR::SculptVR()
   , shModel("model")
   , shPlane("plane")
   , shHand("hand")
-  , leftHand(Hand::Type::LEFT)
-  , rightHand(Hand::Type::RIGHT)
+  , volume(32)
+  , leftHand(Hand::Type::LEFT, volume)
+  , rightHand(Hand::Type::RIGHT, volume)
   , msGround(20.0f, 20.0f)
   , mouseDown(false)
   , viewQuat(1, 0, 0, 0)
@@ -101,7 +102,6 @@ SculptVR::SculptVR()
       glm::vec3(7.0f, 7.0f, 7.0f),
       glm::vec3(0.0f, 0.0f, 0.0f),
       glm::vec3(0.0f, 1.0f, 0.0f)))
-  , volume(128)
 {
   triangles.resize(2000);
 }
@@ -263,7 +263,7 @@ void SculptVR::RebuildModel()
   
   triangles.clear();
   //volume.FillCube(10, 10, 10, 10, 1, 0xff, 0xff, 0xff, 0xff);
-  volume.FillSphere(50, 50, 50, 50, 1, 0xff, 0xff, 0xff, 0xff);
+  volume.FillSphere(15, 15, 15, 15, 1, 0xff, 0xff, 0xff, 0xff);
   volume.GridToTris(triangles);
 
   glBufferData(
@@ -293,8 +293,16 @@ void SculptVR::GLDrawScene(const glm::mat4& view, const glm::mat4& proj)
   shHand.bind();
   shHand.uniform("u_proj", proj);
   shHand.uniform("u_view", view);
-  leftHand.render(shHand);
-  rightHand.render(shHand);
+  if (leftHand.render(shHand) || rightHand.render(shHand)) {
+    volume.GridToTris(triangles);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(
+        GL_ARRAY_BUFFER, 
+        triangles.size() * sizeof(Triangle), 
+        &triangles[0], 
+        GL_DYNAMIC_DRAW);
+  }
 
   // Render the model.
   shModel.bind();
