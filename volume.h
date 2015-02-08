@@ -17,7 +17,7 @@ class Volume
 {
 public:
   Volume(size_t size) 
-    : realSize(0.5f)
+    : realSize(0.4f)
     , size(size)
     , X_OFFSET(size * size)
     , Y_OFFSET(size)
@@ -73,6 +73,16 @@ public:
    * Clears the volume i.e. sets iso values to 0.
    */
   void ClearVolume(void);
+
+  /**
+   * Determines if any of the neighbouring points are filled.
+   *
+   * @param x X coordinate
+   * @param y y coordinate
+   * @param z z coordinate   
+   * @return true if any of the neighbouring points are filled, false otherwise
+   */
+  bool HasNeighbours(size_t x, size_t y, size_t z);
 
   void SetPosition(const glm::vec3& p) { position = p; }
   glm::vec3 GetPosition() const { return position; }

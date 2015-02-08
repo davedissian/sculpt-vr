@@ -102,14 +102,14 @@ bool Hand::render(Shader& shader, const glm::mat4& headMatrix)
   switch (type) {
     case Type::LEFT: {
       colour = glm::vec4(0.0f, 0.0f, 1.0f, 0.5f);
-      if (volume.FillCube(p.x, p.y, p.z, 2, 1)) {
+      if (volume.HasNeighbours(p.x, p.y, p.z) && volume.FillCube(p.x, p.y, p.z, 4, 1)) {
         update = true;
       }
       break;
     }
     case Type::RIGHT: {
       colour = glm::vec4(0.0f, 1.0f, 0.0f, 0.5f);
-      if (volume.FillCube(p.x, p.y, p.z, 3, 0)) {
+      if (volume.FillCube(p.x, p.y, p.z, 6, 0)) { 
         update = true;
       }
       break;
@@ -151,7 +151,7 @@ void Hand::destroy()
 
 bool Hand::update(const Leap::Hand& hand)
 {
-  const float handScaleFactor = 2.0f;
+  const float handScaleFactor = 1.5f;
   const float mmToScale = 1000.0f / handScaleFactor;
 
   // For each finger

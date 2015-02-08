@@ -296,7 +296,7 @@ void SculptVR::CreateVolume()
 
   volume.ClearVolume();
   size_t size = volume.Detail();
-  volume.FillCube(size / 8, size / 8, size / 8, size * 3 / 4, 1);
+  volume.FillCube(2, 2, 2, size - 4, 1);
   triangles.clear();
   volume.GridToTris(triangles);
 
