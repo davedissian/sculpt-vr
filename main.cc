@@ -287,34 +287,34 @@ void SculptVR::GLInit()
 
 void SculptVR::CreateVolume()
 {
-  volume.ClearVolume();
-  volume.FillCube(2, 2, 2, 26, 1);
-  triangles.clear();
-  volume.GridToTris(triangles);
-}
-
-void SculptVR::RebuildModel()
-{
   // Set up the big VBO.
   glBindVertexArray(vao);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
-  
-  CreateVolume();
+
+  volume.ClearVolume();
+  volume.FillCube(2, 2, 2, 26, 1);
+  triangles.clear();
+  volume.GridToTris(triangles);
 
   glBufferData(
       GL_ARRAY_BUFFER, 
       triangles.size() * sizeof(Triangle), 
-      &triangles[0], 
+      triangles.data(), 
       GL_DYNAMIC_DRAW);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 24, (void*)0);
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 24, (void*)12);
-
+  
   std::cout << "Size: " << triangles.size() << std::endl;
 
   glBindVertexArray(0);
+}
+
+void SculptVR::RebuildModel()
+{
+  CreateVolume();
 }
 
 void SculptVR::GLDrawScene(const glm::mat4& view, const glm::mat4& proj)
@@ -329,9 +329,12 @@ void SculptVR::GLDrawScene(const glm::mat4& view, const glm::mat4& proj)
   shHand.uniform("u_proj", proj);
   shHand.uniform("u_view", view);
 
-  if (leftHand.render(shHand, headMatrix) || 
-      rightHand.render(shHand, headMatrix)) 
-  {
+  bool update = false;
+  update = leftHand.render(shHand, headMatrix) || update;
+  update = rightHand.render(shHand, headMatrix) || update;
+
+  // Update the volume.
+  if (update) {
     triangles.clear();
     volume.GridToTris(triangles);
 
@@ -343,7 +346,7 @@ void SculptVR::GLDrawScene(const glm::mat4& view, const glm::mat4& proj)
         GL_DYNAMIC_DRAW);
   }
 
-  // Render the model.
+  // Render the volume.
   shModel.bind();
   shModel.uniform("u_proj", proj);
   shModel.uniform("u_view", view);
@@ -359,13 +362,6 @@ void SculptVR::GLDrawScene(const glm::mat4& view, const glm::mat4& proj)
   shPlane.uniform("u_view", view);
   msGround.render(shPlane);
   glDisable(GL_BLEND);
-}
-
-void printMat(const float* f)
-{
-  for (int i = 0; i < 16; i++)
-    std::cout << f[i] << ", ";
-  std::cout << std::endl;
 }
 
 void SculptVR::GLRender()
