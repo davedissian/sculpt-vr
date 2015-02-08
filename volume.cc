@@ -570,7 +570,7 @@ Volume::FillSphere(size_t x, size_t y, size_t z, size_t radius, float isoValue)
     for (size_t j = ((radius > y) ? 0 : (y - radius)); 
         j < std::min(y + radius, size - 1); ++j)
     {
-      for (size_t k = ((radius > k) ? 0 : (z - radius)); 
+      for (size_t k = ((radius > z) ? 0 : (z - radius)); 
           k < std::min(z + radius, size - 1); ++ k)
       {
         /* Check if (i, j, k) is within the sphere. */
@@ -644,17 +644,21 @@ Volume::Interpolate(float x1, float y1, float z1, Point& p1,
   out.z = (z1 + d * (z2 - z1)) * scale - realSize * 0.5f;
 }
 
-  bool
+bool
 Volume::HasNeighbours(size_t x, size_t y, size_t z)
 {
-  if ((x > 0 && grid[(x - 1) * X_OFFSET + y * Y_OFFSET + z].isoValue != 0) ||
-      (x < (size - 1) && grid[(x + 1) * X_OFFSET + y * Y_OFFSET + z].isoValue != 0) ||
-      (y > 0 && grid[x * X_OFFSET + (y - 1) * Y_OFFSET + z].isoValue != 0) ||
-      (y < (size - 1) && grid[x * X_OFFSET + (y + 1) * Y_OFFSET + z].isoValue != 0) ||
-      (z > 0 && grid[x * X_OFFSET + y * Y_OFFSET + z - 1].isoValue != 0) ||
-      (z < (size - 1) && grid[x * X_OFFSET + y * Y_OFFSET + z + 1].isoValue != 0))
+  for (size_t i = ((x > 0) ? (x - 1) : 0); i <= std::min(x + 1, size - 1); ++i)
   {
-    return true;
+    for (size_t j = ((y > 0) ? (y - 1) : 0); j <= std::min(y + 1, size - 1); ++j)
+    {
+      for (size_t k = ((z > 0) ? (z - 1) : 0); k <= std::min(z + 1, size - 1); ++k) 
+      {
+        if (grid[i * X_OFFSET + j * Y_OFFSET + k].isoValue != 0)
+        {
+          return true;
+        }
+      }
+    }
   }
   return false;
 }
