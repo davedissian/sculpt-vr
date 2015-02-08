@@ -19,7 +19,7 @@ public:
 	~Hand();
 
   void create();
-  void render(Shader& shader);
+  void render(Shader& shader, glm::mat4 headMatrix);
   void destroy();
   bool update(const Leap::Hand& hand);
 

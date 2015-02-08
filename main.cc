@@ -7,6 +7,24 @@
 
 #include <../Src/OVR_CAPI_GL.h>
 
+glm::vec3 convVec(const ovrVector3f& v)
+{
+  return glm::vec3(v.x, v.y, v.z);
+}
+
+glm::quat convQuat(const ovrQuatf& q)
+{
+  return glm::quat(q.w, q.x, q.y, q.z);
+}
+
+glm::mat4 convMat(const ovrMatrix4f& m)
+{
+  return glm::transpose(glm::mat4(m.M[0][0], m.M[0][1], m.M[0][2], m.M[0][3],
+    m.M[1][0], m.M[1][1], m.M[1][2], m.M[1][3],
+    m.M[2][0], m.M[2][1], m.M[2][2], m.M[2][3],
+    m.M[3][0], m.M[3][1], m.M[3][2], m.M[3][3]));
+}
+
 class SculptVR : public Leap::Listener
 {
 public:
@@ -41,6 +59,7 @@ private:
   void onFrame(const Leap::Controller& c) {
     leftHand.tracked = false;
     rightHand.tracked = false;
+    std::cout << c.frame().hands().count() << std::endl;
     for (const auto& hand : c.frame().hands()) {
       if (leftHand.tracked || !leftHand.update(hand)) {
         rightHand.update(hand);
@@ -143,6 +162,8 @@ void SculptVR::Init()
 
   HMDConf();
   // Attach a LeapMotion controller.
+  int flags = Leap::Controller::PolicyFlag::POLICY_IMAGES | Leap::Controller::PolicyFlag::POLICY_OPTIMIZE_HMD;
+  controller.setPolicyFlags((Leap::Controller::PolicyFlag)flags);
   controller.addListener(*this);
 
   GLInit();
@@ -263,7 +284,7 @@ void SculptVR::RebuildModel()
   
   triangles.clear();
   //volume.FillCube(10, 10, 10, 10, 1, 0xff, 0xff, 0xff, 0xff);
-  volume.FillSphere(50, 50, 50, 50, 1, 0xff, 0xff, 0xff, 0xff);
+  //volume.FillSphere(50, 50, 50, 50, 1, 0xff, 0xff, 0xff, 0xff);
   volume.GridToTris(triangles);
 
   glBufferData(
@@ -289,12 +310,16 @@ void SculptVR::GLDrawScene(const glm::mat4& view, const glm::mat4& proj)
   shPlane.uniform("u_view", view);
   msGround.render(shPlane);
 
+  // Get head transform
+  auto state = ovrHmd_GetTrackingState(hmd, ovr_GetTimeInSeconds());
+  glm::mat4 headMatrix = glm::mat4_cast(convQuat(state.HeadPose.ThePose.Orientation));
+
   // Render the hands.
   shHand.bind();
   shHand.uniform("u_proj", proj);
   shHand.uniform("u_view", view);
-  leftHand.render(shHand);
-  rightHand.render(shHand);
+  leftHand.render(shHand, headMatrix);
+  rightHand.render(shHand, headMatrix);
 
   // Render the model.
   shModel.bind();
@@ -310,24 +335,6 @@ void printMat(const float* f)
   for (int i = 0; i < 16; i++)
     std::cout << f[i] << ", ";
   std::cout << std::endl;
-}
-
-glm::vec3 convVec(const ovrVector3f& v)
-{
-  return glm::vec3(v.x, v.y, v.z);
-}
-
-glm::quat convQuat(const ovrQuatf& q)
-{
-  return glm::quat(q.w, q.x, q.y, q.z);
-}
-
-glm::mat4 convMat(const ovrMatrix4f& m)
-{
-  return glm::transpose(glm::mat4(m.M[0][0], m.M[0][1], m.M[0][2], m.M[0][3],
-    m.M[1][0], m.M[1][1], m.M[1][2], m.M[1][3],
-    m.M[2][0], m.M[2][1], m.M[2][2], m.M[2][3],
-    m.M[3][0], m.M[3][1], m.M[3][2], m.M[3][3]));
 }
 
 void SculptVR::GLRender()
