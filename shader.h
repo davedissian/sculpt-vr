@@ -51,4 +51,15 @@ inline void Shader::uniform<glm::mat4>(
   glUniformMatrix4fv(loc->second, 1, GL_FALSE, glm::value_ptr(t));
 }
 
+template<>
+inline void Shader::uniform<glm::vec4>(
+    const std::string& name, const glm::vec4& t)
+{
+  auto loc = uniforms.find(name);
+  if (loc == uniforms.end()) {
+    return;
+  }
+  glUniform4f(loc->second, t.x, t.y, t.z, t.w);
+}
+
 #endif /*__SHADER_H__*/

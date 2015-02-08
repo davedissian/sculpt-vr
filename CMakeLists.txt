@@ -29,9 +29,9 @@ include_directories(${OVR_INCLUDE_DIRS} ${SDL2_INCLUDE_DIRS} ${LEAP_INCLUDE_DIRS
 
 # Sources
 set(SRC
-  leapmotion.cc
   main.cc
   mesh.cc
+  hand.cc
   plane.cc
   shader.cc
   volume.cc)

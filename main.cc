@@ -6,10 +6,8 @@
 #include "framebuffer.h"
 
 #include <../Src/OVR_CAPI_GL.h>
-#include "LeapMotion.h"
-#include "Volume.h"
 
-class SculptVR
+class SculptVR : public Leap::Listener
 {
 public:
   SculptVR();
@@ -36,7 +34,19 @@ private:
   glm::vec3 GetArcballVector(const glm::ivec2& pos);
   
   void DismissWarning();
+  void onConnect(const Leap::Controller& c) {
+    std::cout << "Connected to leap motion controller." << std::endl;
+  }
 
+  void onFrame(const Leap::Controller& c) {
+    leftHand.tracked = false;
+    rightHand.tracked = false;
+    for (const auto& hand : c.frame().hands()) {
+      if (leftHand.tracked || !leftHand.update(hand)) {
+        rightHand.update(hand);
+      }
+    }
+  }
 private:
   volatile bool running;
   SDL_Window *window[2];
@@ -45,6 +55,7 @@ private:
   //LeapMotion leap;
   Shader shPlane;
   Shader shModel;
+  Shader shHand;
   Plane  msGround;
   int vpWidth = 640;
   int vpHeight = 480;
@@ -67,6 +78,12 @@ private:
   ovrTexture tex[2];
   ovrEyeRenderDesc erd[2];
   Framebuffer* buffer[2];
+  /// Leap motion.
+  Leap::Controller controller; 
+
+  /// Two hands. Hopefully.
+  Hand leftHand;
+  Hand rightHand; 
 };
 
 
@@ -74,6 +91,9 @@ SculptVR::SculptVR()
   : running(false)
   , shModel("model")
   , shPlane("plane")
+  , shHand("hand")
+  , leftHand(Hand::Type::LEFT)
+  , rightHand(Hand::Type::RIGHT)
   , msGround(20.0f, 20.0f)
   , mouseDown(false)
   , viewQuat(0, 0, 0, 1)
@@ -120,6 +140,9 @@ void SculptVR::Init()
   std::cout << "OpenGL version supported " << version << std::endl;
 
   HMDConf();
+  // Attach a LeapMotion controller.
+  controller.addListener(*this);
+
   GLInit();
 }
 
@@ -211,6 +234,10 @@ void SculptVR::GLInit()
   shModel.compile("shader/model.vs", Shader::Type::VERT);
   shModel.link();
 
+  shHand.compile("shader/hand.fs", Shader::Type::FRAG);
+  shHand.compile("shader/hand.vs", Shader::Type::VERT);
+  shHand.link();
+
   msGround.create();
   
   glGenVertexArrays(1, &vao);
@@ -256,6 +283,13 @@ void SculptVR::GLDrawScene(const glm::mat4& view, const glm::mat4& proj)
   shPlane.uniform("u_proj", proj);
   shPlane.uniform("u_view", view);
   msGround.render(shPlane);
+
+  // Render the hands.
+  shHand.bind();
+  shHand.uniform("u_proj", proj);
+  shHand.uniform("u_view", view);
+  leftHand.render(shHand);
+  rightHand.render(shHand);
 
   // Render the model.
   shModel.bind();
@@ -319,6 +353,7 @@ void SculptVR::GLCleanup()
 {
   shModel.destroy();
   shPlane.destroy();
+  shHand.destroy();
   msGround.destroy();
 }
 
@@ -411,6 +446,7 @@ void SculptVR::RotateModel()
 
 void SculptVR::Destroy()
 {
+  controller.removeListener(*this);
   GLCleanup();
   SDL_DestroyWindow(window[0]);
   SDL_DestroyWindow(window[1]);
