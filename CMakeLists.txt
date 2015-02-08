@@ -27,6 +27,11 @@ find_package(Leap REQUIRED)
 pkg_search_module(SDL2 REQUIRED sdl2)
 include_directories(${OVR_INCLUDE_DIRS} ${SDL2_INCLUDE_DIRS} ${LEAP_INCLUDE_DIRS})
 
+# Disable oculus view
+if (${DISABLE_VR} EQUALS 1)
+  add_definitions(-DDISABLE_VR)
+endif()
+
 # Sources
 set(SRC
   main.cc
