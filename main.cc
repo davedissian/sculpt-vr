@@ -6,6 +6,8 @@
 #include "framebuffer.h"
 
 #include <../Src/OVR_CAPI_GL.h>
+#include "LeapMotion.h"
+#include "Volume.h"
 
 class SculptVR
 {
@@ -30,6 +32,7 @@ private:
   void GLRender();
   void GLCleanup();
   void RotateModel();
+  void RebuildModel();
   glm::vec3 GetArcballVector(const glm::ivec2& pos);
   
   void DismissWarning();
@@ -39,10 +42,10 @@ private:
   SDL_Window *window[2];
   SDL_GLContext context[2];
 
+  //LeapMotion leap;
   Shader shPlane;
   Shader shModel;
   Plane  msGround;
-
   int vpWidth = 640;
   int vpHeight = 480;
   bool mouseDown;
@@ -50,7 +53,9 @@ private:
   glm::ivec2 mousePos;
   glm::quat viewQuat;
   glm::mat4 cameraMat;
-  
+  Volume volume;
+  std::vector<Triangle> triangles;
+
   /// Really big VBO.
   GLuint vbo;
   /// VAO for the Really big VBO.
@@ -73,10 +78,12 @@ SculptVR::SculptVR()
   , mouseDown(false)
   , viewQuat(0, 0, 0, 1)
   , cameraMat(glm::lookAt(
-      glm::vec3(3.0f, 3.0f, 3.0f),
+      glm::vec3(7.0f, 7.0f, 7.0f),
       glm::vec3(0.0f, 0.0f, 0.0f),
       glm::vec3(0.0f, 1.0f, 0.0f)))
+  , volume(128)
 {
+  triangles.resize(2000);
 }
 
 void SculptVR::Init()
@@ -94,8 +101,8 @@ void SculptVR::Init()
   SDL_GL_SetSwapInterval(1);
   
   // Creat the window
-  SDLCreateWindow(vpWidth, vpHeight, &window[0], &context[0], 0);
   SDLCreateWindow(hmd->Resolution.w, hmd->Resolution.h, &window[1], &context[1], 1);
+  SDLCreateWindow(vpWidth, vpHeight, &window[0], &context[0], 0);
 
   // Set up GLEW
 #ifndef __APPLE__
@@ -205,22 +212,38 @@ void SculptVR::GLInit()
   shModel.link();
 
   msGround.create();
-
-  // Set up the big VBO.
+  
   glGenVertexArrays(1, &vao);
-  glBindVertexArray(vao);
   glGenBuffers(1, &vbo);
+
+  RebuildModel();
+}
+
+void SculptVR::RebuildModel()
+{
+  // Set up the big VBO.
+  glBindVertexArray(vao);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(temp), temp, GL_DYNAMIC_DRAW);
 
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
   glEnableVertexAttribArray(2);
   
+  triangles.clear();
+  volume.FillCube(10, 10, 10, 10, 1, 0xff, 0xff, 0xff, 0xff);
+  volume.GridToTris(triangles);
+
+  glBufferData(
+      GL_ARRAY_BUFFER, 
+      triangles.size() * sizeof(Triangle), 
+      &triangles[0], 
+      GL_DYNAMIC_DRAW);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 32, (void*)0);
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 32, (void*)12);
   glVertexAttribPointer(2, 4, GL_UNSIGNED_SHORT, GL_FALSE, 32, (void*)24);
-  
+
+  std::cout << "Size: " << triangles.size() << std::endl;
+
   glBindVertexArray(0);
 }
 
@@ -239,7 +262,7 @@ void SculptVR::GLDrawScene(const glm::mat4& view, const glm::mat4& proj)
   shModel.uniform("u_view", view);
   shModel.uniform("u_model", glm::translate(glm::vec3(0.0f, -3.0f, 0.0f)));
   glBindVertexArray(vao);
-  glDrawArrays(GL_TRIANGLES, 0, 6);
+  glDrawArrays(GL_TRIANGLES, 0, triangles.size() * 3);
 }
 
 void printMat(const float* f)

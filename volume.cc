@@ -6,10 +6,6 @@
 
 static const float ISO_LIMIT = 0.5f;
 
-/* Coordinate offsets. */
-static const uint32_t X_OFFSET = 512 * 512;
-static const uint32_t Y_OFFSET = 512;
-
 /* Vertist, used for constructing triangles. */
 static Vertex vertex_list[12];
 
@@ -533,7 +529,7 @@ Volume::VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out)
   }
 
   /* Construct the triangles. */
-  for (size_t i = 0; triTable[voxel_index][i]; i += 3)
+  for (size_t i = 0; triTable[voxel_index][i] != -1; i += 3)
   {
     /* Calculate the normal vector components. */
     Normalise(vertex_list[triTable[voxel_index][i    ]],
@@ -548,7 +544,7 @@ Volume::VoxelToTris(size_t x, size_t y, size_t z, std::vector<Triangle>& out)
 }
 
 void
-Volume::GridToTris(size_t size, std::vector<Triangle>& out)
+Volume::GridToTris(std::vector<Triangle>& out)
 {
   size_t x, y, z;
 
@@ -559,6 +555,26 @@ Volume::GridToTris(size_t size, std::vector<Triangle>& out)
       for (z = 0; z < (size - 1); ++z)
       {
         VoxelToTris(x, y, z, out);
+      }
+    }
+  }
+}
+
+void 
+Volume::FillCube(size_t x, size_t y, size_t z, size_t edge_len,
+                 float isoValue, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+{
+  for (size_t i = x; i < (std::min(x + edge_len, size - 1)); ++i)
+  {
+    for (size_t j = y; j < (std::min(y + edge_len, size - 1)); ++j)
+    {
+      for (size_t k = z; k < (std::min(z + edge_len, size - 1)); ++k)
+      {
+        grid[i * X_OFFSET + j * Y_OFFSET + k].isoValue = isoValue;
+        grid[i * X_OFFSET + j * Y_OFFSET + k].r = r;
+        grid[i * X_OFFSET + j * Y_OFFSET + k].g = g;
+        grid[i * X_OFFSET + j * Y_OFFSET + k].b = b;
+        grid[i * X_OFFSET + j * Y_OFFSET + k].a = a;
       }
     }
   }
