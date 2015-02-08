@@ -28,7 +28,7 @@ pkg_search_module(SDL2 REQUIRED sdl2)
 include_directories(${OVR_INCLUDE_DIRS} ${SDL2_INCLUDE_DIRS} ${LEAP_INCLUDE_DIRS})
 
 # Disable oculus view
-if (${DISABLE_VR} EQUALS 1)
+if (${DISABLE_VR})
   add_definitions(-DDISABLE_VR)
 endif()
 
