@@ -47,7 +47,7 @@ void Hand::create()
 }
 
 
-bool Hand::render(Shader& shader)
+bool Hand::render(Shader& shader, const glm::mat4& headMatrix)
 {
   glm::vec4 colour;
   bool update = false;
@@ -69,8 +69,10 @@ bool Hand::render(Shader& shader)
     }
   }
 
+  glm::vec4 absHand = headMatrix * glm::vec4(wrist, 1.0f);
+
   glBindVertexArray(vao);
-  shader.uniform("u_model", glm::translate(wrist));
+  shader.uniform("u_model", glm::translate(glm::vec3(absHand.x, -absHand.y, absHand.z)));
   shader.uniform("u_colour", colour);
   glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -87,9 +89,8 @@ void Hand::destroy()
 
 bool Hand::update(const Leap::Hand& hand)
 {
-  glm::vec3 newWrist(hand.wristPosition().x, hand.wristPosition().y, hand.wristPosition().z);
+  glm::vec3 newWrist(-hand.wristPosition().x, hand.wristPosition().z, -hand.wristPosition().y);
   wrist = newWrist / 100.0f;
-  model = glm::translate(wrist);
   tracked = true;
   return true;
 }
