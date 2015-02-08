@@ -9,5 +9,5 @@ in vec4 v_colour;
 
 void main(void)
 {
-	colour = vec4(dot(normalize(v_normal), LIGHT_DIR));
+	colour = vec4(max(dot(normalize(v_normal), LIGHT_DIR), 0.05));
 }

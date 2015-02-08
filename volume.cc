@@ -571,9 +571,9 @@ Volume::FillCube(size_t x, size_t y, size_t z, size_t edge_len,
     {
       for (size_t k = z; k < std::min(z + edge_len, size - 1); ++k)
       {
-        float& iso = grid[i * X_OFFSET + j * Y_OFFSET + k].isoValue;
+        float iso = grid[i * X_OFFSET + j * Y_OFFSET + k].isoValue;
         changes = changes || (iso != isoValue);
-        iso = isoValue;
+        grid[i * X_OFFSET + j * Y_OFFSET + k].isoValue = isoValue;
         grid[i * X_OFFSET + j * Y_OFFSET + k].r = r;
         grid[i * X_OFFSET + j * Y_OFFSET + k].g = g;
         grid[i * X_OFFSET + j * Y_OFFSET + k].b = b;
@@ -603,9 +603,9 @@ Volume::FillSphere(size_t x, size_t y, size_t z, size_t radius,
                  (y - j) * (y - j) + 
                  (z - k) * (z - k)) <= radius)
         {
-          float& iso = grid[i * X_OFFSET + j * Y_OFFSET + k].isoValue;
+          float iso = grid[i * X_OFFSET + j * Y_OFFSET + k].isoValue;
           changes = changes || (iso != isoValue);
-          iso = isoValue;
+          grid[i * X_OFFSET + j * Y_OFFSET + k].isoValue = isoValue;
           grid[i * X_OFFSET + j * Y_OFFSET + k].r = r;
           grid[i * X_OFFSET + j * Y_OFFSET + k].g = g;
           grid[i * X_OFFSET + j * Y_OFFSET + k].b = b;
