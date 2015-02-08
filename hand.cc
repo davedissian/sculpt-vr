@@ -88,7 +88,7 @@ void Hand::create()
 }
 
 
-bool Hand::render(Shader& shader, const glm::mat4& headMatrix)
+bool Hand::render(Shader& shader, const glm::mat4& headMatrix, bool sculpt)
 {
   glm::vec4 colour;
   bool update = false;
@@ -101,15 +101,15 @@ bool Hand::render(Shader& shader, const glm::mat4& headMatrix)
 
   switch (type) {
     case Type::LEFT: {
-      colour = glm::vec4(0.0f, 0.0f, 1.0f, 0.5f);
-      if (volume.HasNeighbours(p.x, p.y, p.z) && volume.FillCube(p.x, p.y, p.z, 4, 1)) {
+      colour = glm::vec4(0.25f, 0.25f, 0.75f, 0.15f);
+      if (sculpt && volume.HasNeighbours(p.x, p.y, p.z) && volume.FillCube(p.x, p.y, p.z, 4, 1)) {
         update = true;
       }
       break;
     }
     case Type::RIGHT: {
-      colour = glm::vec4(0.0f, 1.0f, 0.0f, 0.5f);
-      if (volume.FillCube(p.x, p.y, p.z, 6, 0)) { 
+      colour = glm::vec4(0.25f, 0.75f, 0.25f, 0.15f);
+      if (sculpt && volume.FillCube(p.x, p.y, p.z, 6, 0)) { 
         update = true;
       }
       break;
@@ -134,7 +134,7 @@ bool Hand::render(Shader& shader, const glm::mat4& headMatrix)
     }
   }
   
-  shader.uniform("u_colour", glm::vec4(0.75f, 0.0f, 0.0f, 0.5f));
+  shader.uniform("u_colour", glm::vec4(0.75f, 0.0f, 0.0f, 0.15f));
   shader.uniform("u_model", glm::translate(indexTip) * glm::scale(glm::vec3(0.025f)));
   glDrawArrays(GL_TRIANGLES, 0, 36);
 
@@ -151,7 +151,7 @@ void Hand::destroy()
 
 bool Hand::update(const Leap::Hand& hand)
 {
-  const float handScaleFactor = 1.5f;
+  const float handScaleFactor = 2.5f;
   const float mmToScale = 1000.0f / handScaleFactor;
 
   // For each finger

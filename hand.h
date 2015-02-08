@@ -20,7 +20,7 @@ public:
 	~Hand();
 
   void create();
-  bool render(Shader& shader, const glm::mat4& headMatrix);
+  bool render(Shader& shader, const glm::mat4& headMatrix, bool sculpt);
   void destroy();
   bool update(const Leap::Hand& hand);
 

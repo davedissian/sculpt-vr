@@ -325,15 +325,36 @@ void SculptVR::GLDrawScene(const glm::mat4& view, const glm::mat4& proj)
   glm::mat4 headMatrix = glm::translate(headOrigin + convVec(state.HeadPose.ThePose.Position))
     * glm::mat4_cast(convQuat(state.HeadPose.ThePose.Orientation));
 
+  // Render the volume.
+  shModel.bind();
+  shModel.uniform("u_proj", proj);
+  shModel.uniform("u_view", view);
+  shModel.uniform("u_model", glm::translate(volume.GetPosition()));
+  glBindVertexArray(vao);
+  glDrawArrays(GL_TRIANGLES, 0, triangles.size() * 3);
+
   // Render the hands.
   shHand.bind();
   shHand.uniform("u_proj", proj);
   shHand.uniform("u_view", view);
 
-  bool update = false;
-  update = leftHand.render(shHand, headMatrix) || update;
-  update = rightHand.render(shHand, headMatrix) || update;
 
+  glEnable(GL_BLEND);
+  glDepthFunc(GL_GREATER);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glDepthMask(GL_FALSE);
+  glEnable(GL_CULL_FACE);
+  leftHand.render(shHand, headMatrix, false);
+  rightHand.render(shHand, headMatrix, false);
+  glDepthMask(GL_TRUE);
+  glDepthFunc(GL_LEQUAL);
+  glDisable(GL_BLEND);
+  glDisable(GL_CULL_FACE);
+  
+  bool update = false;
+  update = leftHand.render(shHand, headMatrix, true) || update;
+  update = rightHand.render(shHand, headMatrix, true) || update;
+  
   // Update the volume.
   if (update) {
     triangles.clear();
@@ -347,17 +368,8 @@ void SculptVR::GLDrawScene(const glm::mat4& view, const glm::mat4& proj)
         GL_DYNAMIC_DRAW);
   }
 
-  // Render the volume.
-  shModel.bind();
-  shModel.uniform("u_proj", proj);
-  shModel.uniform("u_view", view);
-  shModel.uniform("u_model", glm::translate(volume.GetPosition()));
-  glBindVertexArray(vao);
-  glDrawArrays(GL_TRIANGLES, 0, triangles.size() * 3);
-  
   // Render the ground plane.
   glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   shPlane.bind();
   shPlane.uniform("u_proj", proj);
   shPlane.uniform("u_view", view);
