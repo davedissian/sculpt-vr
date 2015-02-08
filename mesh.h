@@ -9,7 +9,6 @@
 struct Vertex {
   float x, y, z;
   float nx, ny, nz;
-  uint16_t r, g, b, a;
 };
 
 struct Triangle {
