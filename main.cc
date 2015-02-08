@@ -96,7 +96,7 @@ SculptVR::SculptVR()
   , rightHand(Hand::Type::RIGHT)
   , msGround(20.0f, 20.0f)
   , mouseDown(false)
-  , viewQuat(0, 0, 0, 1)
+  , viewQuat(1, 0, 0, 0)
   , cameraMat(glm::lookAt(
       glm::vec3(7.0f, 7.0f, 7.0f),
       glm::vec3(0.0f, 0.0f, 0.0f),
